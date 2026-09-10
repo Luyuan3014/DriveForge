@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "driveforge"
+version = "0.1.0"
+description = "Evidence-first RT-Thread driver engineering agent"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "DriveForge contributors" }]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/Luyuan3014/DriveForge"
+Repository = "https://github.com/Luyuan3014/DriveForge.git"
+Issues = "https://github.com/Luyuan3014/DriveForge/issues"
+Changelog = "https://github.com/Luyuan3014/DriveForge/blob/main/CHANGELOG.md"
+
+[project.scripts]
+driveforge = "driveforge.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+driveforge = ["py.typed"]

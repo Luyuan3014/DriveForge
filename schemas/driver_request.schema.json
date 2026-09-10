@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://driveforge.local/schemas/driver_request.schema.json",
+  "title": "DriveForge Driver Request",
+  "type": "object",
+  "required": ["request"],
+  "properties": {
+    "request": {"type": "string", "minLength": 1},
+    "hardware": {
+      "type": "object",
+      "properties": {
+        "platform": {"type": "object"},
+        "mcu": {"type": "object"},
+        "target": {"type": "object"},
+        "pins": {"type": "object"},
+        "clock": {"type": "object"},
+        "interrupt": {"type": "object"},
+        "debug": {"type": "object"},
+        "driver": {"type": "object"}
+      }
+    },
+    "commands": {
+      "type": "object",
+      "properties": {
+        "patch": {"type": ["string", "null"]},
+        "build": {"type": ["string", "null"]},
+        "flash": {"type": ["string", "null"]},
+        "test": {"type": ["string", "null"]},
+        "repair": {"type": ["string", "null"]}
+      }
+    },
+    "timeouts": {"type": "object"},
+    "max_repair_attempts": {"type": "integer", "minimum": 0, "maximum": 10}
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://driveforge.local/schemas/verification_report.schema.json",
+  "title": "DriveForge Verification Report",
+  "type": "object",
+  "required": ["schema_version", "request", "status", "phases", "modified_files", "hardware_facts", "failures"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "request": {"type": "string"},
+    "target": {"type": ["string", "null"]},
+    "platform": {"type": ["object", "null"]},
+    "mcu": {"type": ["object", "null"]},
+    "peripheral": {"type": ["string", "null"]},
+    "strategy": {"type": "string"},
+    "status": {"enum": ["PLANNED", "BUILD_PASS", "FLASH_PASS", "VERIFIED", "FAIL", "BLOCKED"]},
+    "phases": {"type": "array", "items": {"type": "object"}},
+    "modified_files": {"type": "array", "items": {"type": "string"}},
+    "hardware_facts": {"type": "object"},
+    "failures": {"type": "array", "items": {"type": "object"}}
+  }
+}

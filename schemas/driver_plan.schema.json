@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://driveforge.local/schemas/driver_plan.schema.json",
+  "title": "DriveForge Driver Plan",
+  "type": "object",
+  "required": ["schema_version", "request", "status", "strategy", "steps", "blockers"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "request": {"type": "string"},
+    "status": {"enum": ["PLANNED", "BLOCKED"]},
+    "target": {"type": ["string", "null"]},
+    "peripheral": {"type": ["string", "null"]},
+    "strategy": {
+      "enum": ["blocked", "adapt_existing_instance", "extend_existing_driver", "implement_from_verified_sdk_evidence"]
+    },
+    "reference": {"type": "object"},
+    "project_inventory": {"type": "object"},
+    "evidence_files": {"type": "array", "items": {"type": "string"}},
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "phase", "action", "status"]
+      }
+    },
+    "risks": {"type": "array", "items": {"type": "string"}},
+    "blockers": {"type": "array", "items": {"type": "object"}}
+  }
+}

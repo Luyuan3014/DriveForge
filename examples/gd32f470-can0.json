@@ -1,0 +1,41 @@
+{
+  "request": "给这个项目增加 CAN0 驱动并验证收发",
+  "hardware": {
+    "platform": {
+      "os": "rt-thread",
+      "version": "5.1.0"
+    },
+    "mcu": {
+      "model": "GD32F470ZIT6"
+    },
+    "target": {
+      "peripheral": "CAN",
+      "instance": "CAN0"
+    },
+    "pins": {
+      "rx": "PD0",
+      "tx": "PD1"
+    },
+    "clock": {
+      "gate": "RCU_CAN0",
+      "frequency": 60000000
+    },
+    "interrupt": {
+      "irq": "CAN0_RX0_IRQn"
+    },
+    "debug": {
+      "probe": "J-Link",
+      "interface": "SWD"
+    },
+    "driver": {
+      "reference": "CAN1"
+    }
+  },
+  "commands": {
+    "build": "scons -j8",
+    "flash": null,
+    "test": null,
+    "repair": null
+  },
+  "max_repair_attempts": 2
+}
