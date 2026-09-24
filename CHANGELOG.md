@@ -8,11 +8,15 @@ DriveForge 的所有重要变更都记录在此文件中。格式参考 [Keep a 
 
 ### Added
 
+- 新增 `driveforge view`，从真实 `.driveforge` JSON 产物生成只读本地 HTML 报告，展示事实证据、阶段状态、修改文件和日志。
 - 新增官方落地页与 Web 交互式仿真控制台（`website/`），提供 Antigravity 科技风格相对论黑洞视觉引擎与外设驱动仿真体验。
 - 增加基于 CDP 的 Headless 浏览器端到端测试套件（`tools/verify_website.py`）。
 - 提供生产级 Nginx 配置、容器化构建（`Dockerfile`、`docker-compose.yml`）及跨平台自动化部署脚本（`deploy.ps1`、`deploy.sh`）。
 
 ### Changed
+
+- 明确 `website/` 仅为预设产品交互演示，并将模拟构建、烧录和测试结果标记为 `SIMULATED_PASS`，不再呈现为真实 `VERIFIED`。
+- 详细说明见 [`docs/updates/2026-09-24-local-report-viewer.md`](docs/updates/2026-09-24-local-report-viewer.md)。
 
 ### Fixed
 

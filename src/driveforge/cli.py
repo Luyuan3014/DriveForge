@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import webbrowser
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +14,7 @@ from .planner import build_plan
 from .resolver import build_manifest, merge_facts, validate_facts
 from .runner import WorkflowRunner, build_report
 from .utils import load_json, project_snapshot, utc_now, write_json, write_yaml
+from .viewer import generate_report_page
 
 
 def _coerce(value: str) -> Any:
@@ -68,6 +70,10 @@ def _build_parser() -> argparse.ArgumentParser:
     run.add_argument("--execute-build", action="store_true", help="Run the configured/detected build")
     run.add_argument("--execute-flash", action="store_true", help="Run commands.flash from the config")
     run.add_argument("--execute-test", action="store_true", help="Run commands.test from the config")
+    view = subparsers.add_parser("view", help="Open a read-only HTML view of real workflow artifacts.")
+    view.add_argument("project", type=Path, help="RT-Thread project directory")
+    view.add_argument("-o", "--output", type=Path, help="Artifact directory (default: PROJECT/.driveforge)")
+    view.add_argument("--no-open", action="store_true", help="Generate the page without opening a browser")
     return parser
 
 
@@ -153,6 +159,16 @@ def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
     try:
+        if args.command == "view":
+            project = args.project.resolve()
+            if not project.is_dir():
+                raise ValueError(f"Project directory does not exist: {project}")
+            output = args.output.resolve() if args.output else project / ".driveforge"
+            page, status = generate_report_page(output)
+            if not args.no_open:
+                webbrowser.open(page.as_uri())
+            print(json.dumps({"status": status, "page": str(page)}, ensure_ascii=False, indent=2))
+            return 0
         project, output, config, context, manifest, plan = _prepare(args)
         if args.command == "scan":
             _write_base_artifacts(output, manifest, None)

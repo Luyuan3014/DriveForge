@@ -29,6 +29,7 @@ flowchart TD
     K -.失败.-> L
     L --> I
     K --> M[Verification Report]
+    M --> N[Read-only Local HTML View]
 ```
 
 CLI 负责确定性扫描、门禁、规划、命令执行和报告；根目录的 `SKILL.md` 负责指导 Codex 完成需要工程判断的代码修改。独立运行时也可以通过 `commands.patch` 和 `commands.repair` 接入外部自动化实现器。
@@ -43,6 +44,7 @@ CLI 负责确定性扫描、门禁、规划、命令执行和报告；根目录�
 | `src/driveforge/resolver.py` | 合并项目事实与用户事实，规范化值并执行关键事实门禁 |
 | `src/driveforge/planner.py` | 选择参考实例，生成最小改动导向的 Driver Plan |
 | `src/driveforge/runner.py` | 执行 patch/build/flash/test/repair 命令，保存日志并计算最终状态 |
+| `src/driveforge/viewer.py` | 从真实 JSON 产物生成只读、自包含的本地 HTML 报告 |
 | `src/driveforge/models.py` | Fact、Evidence、ScanResult、CommandResult 等领域模型 |
 | `src/driveforge/utils.py` | 文件遍历、序列化、哈希基线和变更计算 |
 | `playbooks/` | 七类外设的最小硬件验收准则 |
@@ -112,6 +114,8 @@ Build 和 Test 可以使用 `commands.repair` 进行有限次数修复。默认�
 `plan` 在目标工程中创建源码哈希基线。随后执行 `run` 时，Verification Report 会列出规划之后发生变化的文本文件。构建、烧录、测试和修复命令的标准输出与错误输出分别写入 `.driveforge/logs/`。
 
 YAML 产物便于人工审查，JSON 产物便于后续工具消费。核心实现使用 JSON 兼容的 YAML 子集，从而保持零第三方运行时依赖。
+
+`driveforge view` 只读取 `state.json`、可选的 `verification_report.json` 和日志目录，并在同一产物目录生成 `report.html`。页面不提供执行按钮，不引入服务端，也不改变任何工作流状态。仓库中的 `website/` 是独立的产品演示，不连接 CLI，其预设结果不属于证据链。
 
 ## 当前边界
 

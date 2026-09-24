@@ -143,7 +143,7 @@
     const term = document.getElementById('terminal-content');
     const statusBadge = document.getElementById('sim-status-badge');
 
-    if (runText) runText.textContent = '流水线执行中...';
+    if (runText) runText.textContent = '产品演示运行中...';
     if (runBtn) {
       runBtn.disabled = true;
       runBtn.setAttribute('aria-busy', 'true');
@@ -163,14 +163,14 @@
 
     switchTab('tab-terminal');
     if (term) {
-      term.innerHTML = `<span class="text-sky-400 font-semibold">[DriveForge v0.1.0] Starting closed-loop execution...</span><br>`;
+      term.innerHTML = `<span class="text-amber-300 font-semibold">[PRODUCT DEMO] Preset data only; no command or hardware operation is executed.</span><br>`;
     }
 
     // Step 1: Scan & Intent
     setTimeout(() => {
       if (term) {
         term.innerHTML += `<span class="text-slate-300">→ [Intent] Identified Peripheral: <span class="text-white font-bold">${periph}</span>, MCU: <span class="text-white font-bold">${mcu}</span></span><br>`;
-        term.innerHTML += `<span class="text-slate-300">→ [Scan] Analyzing RT-Thread workspace: 238 source files, build tool: SCons</span><br>`;
+        term.innerHTML += `<span class="text-slate-300">→ [Demo Scan] Simulated workspace: 238 source files, build tool: SCons</span><br>`;
       }
       if (p2) p2.className = 'flex items-center gap-2 text-blue-600 dark:text-sky-400 font-medium';
       if (statusBadge) {
@@ -184,7 +184,7 @@
       if (term) {
         term.innerHTML += `<span class="text-slate-300">→ [Fact Gate] Pins verified: <span class="text-emerald-400 font-semibold">${pins}</span> backed by board.h:42 (Confidence: HIGH)</span><br>`;
         term.innerHTML += `<span class="text-slate-300">→ [Fact Gate] Clock gate: <span class="text-emerald-400 font-semibold">${preset.clock}</span> confirmed via CMSIS RCU table</span><br>`;
-        term.innerHTML += `<span class="text-emerald-400">✓ All critical hardware facts verified. Zero hallucination.</span><br>`;
+        term.innerHTML += `<span class="text-amber-300">◇ Demo gate passed with preset facts; this is not project evidence.</span><br>`;
       }
       if (p3) p3.className = 'flex items-center gap-2 text-blue-600 dark:text-sky-400 font-medium';
       if (statusBadge) statusBadge.textContent = 'PLANNING...';
@@ -195,7 +195,7 @@
       if (term) {
         term.innerHTML += `<span class="text-slate-300">→ [Planner] Selected strategy: <span class="text-sky-300 font-semibold">${preset.strategy}</span></span><br>`;
         term.innerHTML += `<span class="text-slate-300">→ [Planner] Reusing reference file: <span class="text-amber-300">${preset.ref}</span></span><br>`;
-        term.innerHTML += `<span class="text-sky-400">✓ Generated .driveforge/hardware_manifest.yaml & driver_plan.yaml</span><br>`;
+        term.innerHTML += `<span class="text-sky-400">◇ Displaying sample manifest and plan; no files were generated.</span><br>`;
       }
       if (p4) p4.className = 'flex items-center gap-2 text-blue-600 dark:text-sky-400 font-medium';
       if (statusBadge) statusBadge.textContent = 'EXECUTING...';
@@ -204,18 +204,18 @@
     // Step 4: SCons Build & Flash & Test
     setTimeout(() => {
       if (term) {
-        term.innerHTML += `<span class="text-slate-200">$ scons -j8</span><br>`;
-        term.innerHTML += `<span class="text-emerald-400">✓ [Build] SCons compilation passed in 1.84s (0 errors).</span><br>`;
-        term.innerHTML += `<span class="text-slate-200">$ JLinkExe -CommandFile flash.jlink</span><br>`;
-        term.innerHTML += `<span class="text-emerald-400">✓ [Flash] Flashed firmware to ${mcu} @ 0x08000000. Reset & Go.</span><br>`;
-        term.innerHTML += `<span class="text-slate-200">$ python tools/hardware_test.py --target ${periph}</span><br>`;
-        term.innerHTML += `<span class="text-emerald-400 font-bold">✓ [Hardware Test] ${preset.testType} PASS! All assertions met.</span><br>`;
-        term.innerHTML += `<span class="text-sky-300 font-semibold">★ Final Status: VERIFIED (Exit code: 0)</span>`;
+        term.innerHTML += `<span class="text-slate-200">[simulated] $ scons -j8</span><br>`;
+        term.innerHTML += `<span class="text-slate-300">◇ [Demo Build] Sample compilation result: PASS.</span><br>`;
+        term.innerHTML += `<span class="text-slate-200">[simulated] $ JLinkExe -CommandFile flash.jlink</span><br>`;
+        term.innerHTML += `<span class="text-slate-300">◇ [Demo Flash] No firmware was written to ${mcu}.</span><br>`;
+        term.innerHTML += `<span class="text-slate-200">[simulated] $ python tools/hardware_test.py --target ${periph}</span><br>`;
+        term.innerHTML += `<span class="text-slate-300">◇ [Demo Test] Sample scenario: ${preset.testType}.</span><br>`;
+        term.innerHTML += `<span class="text-amber-300 font-semibold">★ Demo Status: SIMULATED_PASS (not VERIFIED)</span>`;
       }
 
       if (p4) p4.className = 'flex items-center gap-2 text-emerald-500 dark:text-emerald-400 font-bold';
       if (statusBadge) {
-        statusBadge.textContent = 'VERIFIED';
+        statusBadge.textContent = 'SIMULATED PASS';
         statusBadge.className = 'shrink-0 ml-4 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/40 text-[11px] font-bold animate-pulse';
       }
 
@@ -263,8 +263,9 @@ acceptance_criteria:
       const reportEl = document.getElementById('report-content');
       if (reportEl) {
         reportEl.textContent = JSON.stringify({
-          status: "VERIFIED",
-          exit_code: 0,
+          simulated: true,
+          status: "SIMULATED_PASS",
+          note: "Product demo only. No commands or hardware operations were executed.",
           timestamp: new Date().toISOString(),
           target: { mcu: mcu, peripheral: periph },
           stages: {
@@ -275,7 +276,7 @@ acceptance_criteria:
         }, null, 2);
       }
 
-      if (runText) runText.textContent = '重新运行仿真';
+      if (runText) runText.textContent = '重新运行产品演示';
       if (runBtn) {
         runBtn.disabled = false;
         runBtn.removeAttribute('aria-busy');
@@ -285,7 +286,7 @@ acceptance_criteria:
       isRunning = false;
 
       if (typeof window.showToast === 'function') {
-        window.showToast(`${periph} 仿真验证已通过`);
+        window.showToast(`${periph} 产品演示已完成（非真实验证）`);
       }
     }, 3400);
   }

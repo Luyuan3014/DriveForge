@@ -41,11 +41,13 @@ DriveForge 使用 JSON 配置文件，核心运行时不依赖第三方 YAML 库
 driveforge scan PROJECT --request REQUIREMENT [options]
 driveforge plan PROJECT --request REQUIREMENT [options]
 driveforge run  PROJECT --request REQUIREMENT [options]
+driveforge view PROJECT [--output PATH] [--no-open]
 ```
 
 - `scan`：生成 Hardware Manifest 和原始扫描结果。
 - `plan`：额外生成 Driver Plan 与源码基线。
 - `run`：重新扫描和规划，并按显式开关执行阶段，最后生成 Verification Report。
+- `view`：从已有 `.driveforge` JSON 产物生成只读 `report.html`；不重新扫描，也不执行任何工作流阶段。
 
 通用选项：
 

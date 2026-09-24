@@ -86,6 +86,18 @@ driveforge run C:\path\to\rtthread-project `
 
 退出码为 `0` 表示请求的阶段完成，`1` 表示执行失败，`2` 表示输入无效或流程被阻塞。
 
+## 查看真实运行结果
+
+在执行 `plan` 或 `run` 后，可以生成并打开一个只读本地报告页：
+
+```powershell
+driveforge view C:\path\to\rtthread-project
+```
+
+报告页读取目标工程 `.driveforge/state.json`、`verification_report.json` 和 `logs/`，展示真实的硬件事实、证据位置、规划、阶段状态、修改文件和日志。它不会执行构建、烧录或硬件测试；使用 `--no-open` 可以只生成 `.driveforge/report.html` 而不启动浏览器。
+
+仓库中的 [`website/`](website/README.md) 是产品介绍和预设交互演示，与该只读报告页相互独立。网站中的模拟输出不能作为真实 `VERIFIED` 证据。
+
 ## 使用 Codex Skill
 
 仓库根目录的 [`SKILL.md`](SKILL.md) 定义了 DriveForge 的智能体行为：先建立硬件事实，再按“已有工程 → 同系列实现 → 官方 BSP → 厂商 SDK → RT-Thread 驱动 → 新实现”的顺序寻找复用方案，最后执行有边界的验证与修复。

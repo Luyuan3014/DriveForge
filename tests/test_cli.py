@@ -86,6 +86,22 @@ class CliTests(unittest.TestCase):
             }
             self.assertEqual({"build": "PASS", "flash": "PASS", "test": "PASS"}, terminal_phases)
 
+    def test_view_generates_read_only_page_from_real_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            project = Path(directory)
+            create_rtthread_can_project(project)
+            request = "增加 CAN0 驱动 <script>alert(1)</script>"
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(0, main(["plan", str(project), "-r", request]))
+                self.assertEqual(0, main(["view", str(project), "--no-open"]))
+            page = (project / ".driveforge" / "report.html").read_text(encoding="utf-8")
+            self.assertIn("DriveForge 只读执行报告", page)
+            self.assertIn("PLANNED", page)
+            self.assertIn("驱动规划", page)
+            self.assertIn("adapt_existing_instance", page)
+            self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", page)
+            self.assertNotIn("<script>alert(1)</script>", page)
+
 
 if __name__ == "__main__":
     unittest.main()

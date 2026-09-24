@@ -13,6 +13,7 @@ Roadmap 用来描述实现顺序，不代表对具体发布日期的承诺。产
 - 显式 Build/Flash/Test 命令执行；
 - Build/Test 的有限修复循环和失败分类；
 - 日志、基线变更追踪和 Verification Report；
+- 基于真实 `.driveforge` 产物的只读本地 HTML 报告；
 - Codex Skill、JSON Schema、Playbook、示例与自动化测试。
 
 尚未完成：

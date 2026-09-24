@@ -153,6 +153,10 @@
     </div>
   </header>
 
+  <div class="relative z-40 border-b border-amber-400/30 bg-amber-50/90 dark:bg-amber-950/40 px-4 py-2 text-center text-xs font-medium text-amber-900 dark:text-amber-200">
+    产品交互演示：页面使用预设模拟数据，不读取工程、不执行构建或烧录，也不构成硬件验证证据。真实结果请使用 <code class="font-mono">driveforge view</code>。
+  </div>
+
   <!-- Hero Section with Attio-Style Scroll Parallax Expansion & Orbiting Satellites -->
   <section class="relative z-10 overflow-visible" id="hero-section">
     
@@ -738,13 +742,13 @@
       <div class="reveal text-center max-w-3xl mx-auto mb-14">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs text-blue-600 dark:text-sky-400 font-mono mb-3 font-semibold">
           <span class="w-2 h-2 rounded-full bg-blue-500 dark:bg-sky-400 animate-pulse"></span>
-          LIVE SIMULATOR & PLAYGROUND
+          STATIC PRODUCT DEMO · NO REAL EXECUTION
         </div>
         <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-4">
           DriveForge 在线仿真控制台
         </h2>
         <p class="text-slate-600 dark:text-slate-400 text-sm sm:text-base">
-          无需安装本地工具链，即刻在浏览器中体验 DriveForge 智能体的需求解析、硬件事实校验与端到端自动化验证流。
+          使用预设数据体验 DriveForge 的交互流程。本区域不会读取本地工程、调用工具链或连接开发板，所有输出均为模拟示例。
         </p>
       </div>
 
@@ -782,7 +786,7 @@
           <div class="flex items-end">
             <button id="run-btn" onclick="runSimulation()" class="w-full h-[42px] rounded-xl font-semibold text-xs text-white bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 shadow-glow-blue flex items-center justify-center gap-2 edge-target pressable" aria-live="polite">
               <svg id="run-icon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-              <span id="run-text">运行智能体全流程</span>
+              <span id="run-text">运行产品交互演示</span>
             </button>
           </div>
 
@@ -808,11 +812,11 @@
             <div class="text-slate-400 dark:text-slate-600">→</div>
             <div id="step-4-pill" class="flex items-center gap-2 text-slate-400 dark:text-slate-500">
               <span class="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-600"></span>
-              <span>04. 构建与实测 (Build/Test)</span>
+              <span>04. 模拟构建与测试</span>
             </div>
           </div>
           <div id="sim-status-badge" class="shrink-0 ml-4 px-2.5 py-1 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-white/[0.08] text-[11px] font-semibold" aria-live="polite">
-            READY
+            DEMO READY
           </div>
         </div>
 
@@ -820,7 +824,7 @@
         <div class="bg-slate-100 dark:bg-[#11141f] px-6 border-b border-slate-200 dark:border-white/[0.08] flex gap-2 overflow-x-auto" role="tablist" aria-label="仿真输出">
           <button onclick="switchTab('tab-terminal')" id="tab-btn-terminal" class="px-4 py-3 text-xs font-mono font-medium border-b-2 border-blue-600 dark:border-sky-400 text-blue-600 dark:text-sky-300 flex items-center gap-2 edge-target whitespace-nowrap" role="tab" aria-selected="true" aria-controls="tab-terminal">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
-            实时终端 (CLI Stream)
+            模拟终端 (Demo Stream)
           </button>
           <button onclick="switchTab('tab-manifest')" id="tab-btn-manifest" class="px-4 py-3 text-xs font-mono font-medium border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-2 edge-target whitespace-nowrap" role="tab" aria-selected="false" aria-controls="tab-manifest">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
@@ -832,7 +836,7 @@
           </button>
           <button onclick="switchTab('tab-report')" id="tab-btn-report" class="px-4 py-3 text-xs font-mono font-medium border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-2 edge-target whitespace-nowrap" role="tab" aria-selected="false" aria-controls="tab-report">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-            验证报告 (Report)
+            模拟报告 (Sample Report)
           </button>
         </div>
 
@@ -841,7 +845,7 @@
           
           <!-- Terminal View -->
           <div id="tab-terminal" class="space-y-1.5 tab-panel" role="tabpanel" aria-labelledby="tab-btn-terminal">
-            <div class="text-slate-400">// 点击上方「运行智能体全流程」观察执行过程</div>
+            <div class="text-amber-300">// 产品演示：以下命令与结果均不会真实执行</div>
             <div id="terminal-content" class="leading-relaxed text-slate-300">
               <span class="text-sky-400 font-semibold">$ driveforge --version</span><br>
               DriveForge 0.1.0 (RT-Thread 5.x Autonomous Driver Agent)<br>
