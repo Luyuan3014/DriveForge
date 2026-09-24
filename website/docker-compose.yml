@@ -1,0 +1,11 @@
+services:
+  driveforge-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: driveforge-landing-page
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      - NGINX_PORT=80

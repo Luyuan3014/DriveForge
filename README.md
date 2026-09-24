@@ -97,6 +97,7 @@ driveforge run C:\path\to\rtthread-project `
 | 文档 | 内容 |
 | --- | --- |
 | [`DriveForge-PRD.md`](DriveForge-PRD.md) | 产品定位、MVP 范围和长期愿景 |
+| [`website/`](website/README.md) | 官方落地页与 Web 交互式仿真控制台 |
 | [`docs/architecture.md`](docs/architecture.md) | 系统边界、模块职责、数据流与安全不变量 |
 | [`docs/configuration.md`](docs/configuration.md) | 配置文件、CLI 参数、事实优先级和命令环境 |
 | [`docs/development.md`](docs/development.md) | 本地开发、测试、代码结构和提交要求 |

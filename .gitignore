@@ -6,3 +6,11 @@ __pycache__/
 dist/
 build/
 .driveforge/
+.workbuddy/
+.driveforge-demo/
+*.log
+.DS_Store
+Thumbs.db
+
+# Automated test screenshots
+website/assets/images/verify_*.png

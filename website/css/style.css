@@ -1,0 +1,534 @@
+/**
+ * DriveForge Web Landing Page - Stylesheet
+ * Architecture: Modern Minimalist / Antigravity Agentic Aesthetic
+ */
+
+:root {
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --header-height: 64px;
+}
+
+/* Theme transitions stay scoped so form controls and canvas are not slowed down. */
+body, header, footer, section, .glass-panel, button, a, input, select {
+  transition-property: color, background-color, border-color, box-shadow, opacity;
+  transition-duration: 240ms;
+  transition-timing-function: ease;
+}
+
+body {
+  font-family: 'Google Sans Flex', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+section[id], #workflow {
+  scroll-margin-top: calc(var(--header-height) + 24px);
+}
+
+:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 4px;
+}
+
+button, a, select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ==========================================================================
+   Themes (Dark / Light)
+   ========================================================================== */
+
+/* Dark Theme */
+html.dark body {
+  background-color: #08090c;
+  color: #e2e8f0;
+}
+html.dark ::selection {
+  background: rgba(26, 115, 232, 0.45);
+  color: #ffffff;
+}
+
+/* Light Theme */
+html.light body {
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+html.light ::selection {
+  background: rgba(56, 189, 248, 0.35);
+  color: #0f172a;
+}
+
+/* ==========================================================================
+   Glassmorphism Components
+   ========================================================================== */
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(203, 213, 225, 0.7);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.06);
+}
+html.dark .glass-panel {
+  background: rgba(18, 21, 30, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.5);
+}
+
+.glass-card-hover {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.3s ease;
+  will-change: transform;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.glass-card-hover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(420px circle at var(--spot-x, 50%) var(--spot-y, 50%), rgba(56, 189, 248, 0.13), transparent 45%);
+  transition: opacity 320ms ease;
+}
+.glass-card-hover > * {
+  position: relative;
+  z-index: 1;
+}
+.glass-card-hover:hover {
+  transform: translateY(-6px) scale(1.01);
+}
+.glass-card-hover:hover::before {
+  opacity: 1;
+}
+html.dark .glass-card-hover:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px -5px rgba(56, 189, 248, 0.25);
+}
+html.light .glass-card-hover:hover {
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1), 0 0 30px -5px rgba(56, 189, 248, 0.2);
+}
+
+/* ==========================================================================
+   Typography & Gradients
+   ========================================================================== */
+
+.gradient-text-hero {
+  background: linear-gradient(135deg, #1e293b 10%, #0284c7 60%, #2563eb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+html.dark .gradient-text-hero {
+  background: linear-gradient(135deg, #ffffff 15%, #93c5fd 65%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ==========================================================================
+   Attio-Style Scroll Parallax Hero & Orbiting Satellite Cards
+   ========================================================================== */
+
+#hero-scroll-track {
+  position: relative;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  #hero-scroll-track {
+    min-height: 190vh; /* Expansive scroll distance for silky smooth Attio parallax */
+  }
+  #hero-sticky-stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: calc(var(--header-height) + 0.5rem);
+    padding-bottom: 1.5rem;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 1023px) {
+  #hero-scroll-track {
+    min-height: auto;
+    padding-top: 1rem;
+    padding-bottom: 3rem;
+  }
+  #hero-sticky-stage {
+    position: relative;
+    padding-top: 1rem;
+    height: auto;
+  }
+}
+
+.hero-main-card {
+  transform-origin: center top;
+  will-change: transform;
+  border-radius: 1.25rem;
+  transition: box-shadow 0.4s ease, border-color 0.3s ease;
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+}
+
+html.dark .hero-main-card {
+  box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.85), 0 0 50px -10px rgba(56, 189, 248, 0.22);
+}
+html.light .hero-main-card {
+  box-shadow: 0 30px 80px -20px rgba(15, 23, 42, 0.15), 0 0 40px -10px rgba(56, 189, 248, 0.18);
+}
+
+.satellite-card {
+  border-radius: 1rem;
+  padding: 0.75rem 0.9rem;
+  will-change: transform, opacity;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  user-select: none;
+  opacity: 0; /* Initially hidden at scroll = 0; smoothly emerges on scroll */
+  pointer-events: none;
+  transform-origin: center center;
+}
+
+html.dark .satellite-card {
+  background: rgba(14, 18, 28, 0.94);
+  border: 1px solid rgba(56, 189, 248, 0.26);
+  box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.7), 0 0 24px -6px rgba(56, 189, 248, 0.18);
+}
+
+html.light .satellite-card {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(186, 230, 253, 0.95);
+  box-shadow: 0 16px 32px -10px rgba(15, 23, 42, 0.1), 0 0 20px -5px rgba(56, 189, 248, 0.15);
+}
+
+.satellite-card:hover {
+  border-color: rgba(56, 189, 248, 0.85) !important;
+  box-shadow: 0 20px 50px -10px rgba(56, 189, 248, 0.45) !important;
+  z-index: 40 !important;
+}
+
+/* Active Satellite Glow when synchronized with its pipeline step */
+.satellite-active-glow {
+  border-color: rgba(56, 189, 248, 0.95) !important;
+  box-shadow: 0 0 30px rgba(56, 189, 248, 0.55), 0 20px 45px -10px rgba(0, 0, 0, 0.75) !important;
+}
+
+/* Terminal Custom Scrollbar & Smooth Typing Stream */
+#hero-terminal-stream::-webkit-scrollbar {
+  width: 5px;
+}
+#hero-terminal-stream::-webkit-scrollbar-track {
+  background: transparent;
+}
+#hero-terminal-stream::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+}
+#hero-terminal-stream::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.5);
+}
+
+.terminal-line {
+  animation: terminal-line-in 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes terminal-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Subtle Idle Floating for Satellites on Desktop */
+@keyframes float-sat-1 {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(-0.8deg); }
+}
+
+@keyframes float-sat-2 {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(7px) rotate(0.8deg); }
+}
+
+@keyframes float-sat-3 {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(0.5deg); }
+}
+
+@media (min-width: 1536px) {
+  .animate-float-1 {
+    animation: float-sat-1 5s ease-in-out infinite;
+  }
+  .animate-float-2 {
+    animation: float-sat-2 5.6s ease-in-out infinite;
+  }
+  .animate-float-3 {
+    animation: float-sat-3 5.2s ease-in-out infinite;
+  }
+}
+
+/* Pipeline Step Node Highlight when Satellite is hovered or active */
+.pipeline-node-active {
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.9) !important;
+  transform: scale(1.12);
+  color: #38bdf8 !important;
+}
+
+/* Pulse indicator for live telemetry frames */
+@keyframes loopback-pulse {
+  0% { transform: scaleX(0); opacity: 0.8; }
+  50% { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 0; }
+}
+.loopback-bar-pulse {
+  animation: loopback-pulse 1.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+html.motion-reduced .animate-float-1,
+html.motion-reduced .animate-float-2,
+html.motion-reduced .animate-float-3,
+html.motion-reduced .loopback-bar-pulse {
+  animation: none !important;
+}
+
+/* ==========================================================================
+   Scroll Animations & Progress
+   ========================================================================== */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(40px) scale(0.98);
+  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+#scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #1a73e8, #38bdf8, #818cf8, #38bdf8);
+  background-size: 200% 100%;
+  animation: gradient-flow 3s linear infinite;
+  z-index: 1000;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+  transition: transform 0.12s ease-out;
+}
+@keyframes gradient-flow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+/* ==========================================================================
+   Proximity Edge Illumination
+   ========================================================================== */
+
+@media (pointer: fine) {
+  :is(.edge-target, button, select, input).edge-proximity {
+    border-color: rgba(56, 189, 248, 0.78) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(125, 211, 252, 0.34),
+      0 10px 30px -16px rgba(14, 165, 233, 0.72) !important;
+    filter: brightness(1.035) saturate(1.06);
+  }
+
+  html.light :is(.edge-target, button, select, input).edge-proximity {
+    border-color: rgba(2, 132, 199, 0.58) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(14, 165, 233, 0.2),
+      0 10px 28px -18px rgba(2, 132, 199, 0.55) !important;
+  }
+
+  :is(.edge-target, button, select, input).edge-proximity > svg {
+    transform: scale(1.07);
+  }
+
+  :is(.edge-target, button, select, input),
+  :is(.edge-target, button, select, input) > svg {
+    transition-property: color, background-color, border-color, box-shadow, filter, opacity, transform;
+    transition-duration: 260ms;
+    transition-timing-function: var(--ease-out-expo);
+  }
+}
+
+/* ==========================================================================
+   Navigation & Menus
+   ========================================================================== */
+
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #38bdf8;
+  opacity: 0;
+  transform: translate(-50%, 5px) scale(0.5);
+  transition: opacity 220ms ease, transform 220ms var(--ease-out-expo);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.9);
+}
+.nav-link[aria-current='true'] {
+  color: #0284c7;
+  background: rgba(56, 189, 248, 0.09);
+}
+html.dark .nav-link[aria-current='true'] {
+  color: #7dd3fc;
+}
+.nav-link[aria-current='true']::after {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+#mobile-menu {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 360ms var(--ease-out-expo), opacity 220ms ease;
+}
+#mobile-menu > div {
+  overflow: hidden;
+}
+#mobile-menu.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+#mobile-menu-button .menu-line {
+  transform-origin: center;
+  transition: transform 260ms var(--ease-out-expo), opacity 180ms ease;
+}
+#mobile-menu-button[aria-expanded='true'] .menu-line:first-child {
+  transform: translateY(4px) rotate(45deg);
+}
+#mobile-menu-button[aria-expanded='true'] .menu-line:last-child {
+  transform: translateY(-4px) rotate(-45deg);
+}
+
+/* ==========================================================================
+   Interactive UI Controls (Ripple, Toast, Back-to-Top, Tabs)
+   ========================================================================== */
+
+.pressable {
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+}
+.pressable:active {
+  transform: scale(0.97);
+}
+.pressable .ripple {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.34);
+  transform: translate(-50%, -50%) scale(0);
+  animation: ripple-out 620ms var(--ease-out-expo) forwards;
+}
+@keyframes ripple-out {
+  to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+
+#interaction-toast {
+  transform: translate(-50%, 18px) scale(0.96);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 240ms ease, transform 340ms var(--ease-out-expo);
+}
+#interaction-toast.show {
+  transform: translate(-50%, 0) scale(1);
+  opacity: 1;
+}
+
+#back-to-top {
+  transform: translateY(14px) scale(0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease, transform 320ms var(--ease-out-expo);
+}
+#back-to-top.visible {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tab-panel {
+  animation: panel-in 360ms var(--ease-out-expo) both;
+}
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   Accessibility & Reduced Motion
+   ========================================================================== */
+
+@media (max-width: 767px) {
+  .reveal {
+    transform: translateY(24px);
+  }
+}
+
+html.motion-reduced {
+  scroll-behavior: auto !important;
+}
+html.motion-reduced *,
+html.motion-reduced *::before,
+html.motion-reduced *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+html.motion-reduced .reveal {
+  opacity: 1 !important;
+  transform: none !important;
+}
+html.motion-reduced #antigravity-canvas {
+  opacity: 0.62;
+}
+/* ==========================================================================
+   Modern Custom Scrollbars
+   ========================================================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #1f2433;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #2e364a;
+}

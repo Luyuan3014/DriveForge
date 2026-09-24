@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    (() => {
+      try {
+        const params = new URLSearchParams(location.search);
+        const queryTheme = params.get('theme');
+        const saved = queryTheme || localStorage.getItem('driveforge-theme');
+        const light = saved === 'light' || (!saved && matchMedia('(prefers-color-scheme: light)').matches);
+        document.documentElement.classList.toggle('dark', !light);
+        document.documentElement.classList.toggle('light', light);
+        document.documentElement.classList.toggle('motion-reduced', localStorage.getItem('driveforge-motion') === 'reduced');
+      } catch (_) {}
+    })();
+  </script>
+  <title>DriveForge · 嵌入式驱动自主工程智能体</title>
+  <meta name="description" content="Evidence-first autonomous engineering workflow for RT-Thread peripheral drivers. 证据链优先的嵌入式驱动自主工程智能体。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@8..144,300..700&family=Google+Sans+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS Engine -->
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <script>
+    if (typeof tailwind === 'undefined') {
+      document.write('<script src="https://cdn.tailwindcss.com"><\/script>');
+    }
+  </script>
+  <!-- Tailwind Configuration & Design Tokens -->
+  <script src="./js/tailwind-config.js"></script>
+  <!-- Core Modular Stylesheet -->
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body class="antialiased min-h-screen relative flex flex-col selection:bg-sky-500/30">
+
+  <!-- Top Scroll Progress Bar -->
+  <div id="scroll-progress"></div>
+
+  <!-- 3D Relativistic Black Hole & Accretion Disk Canvas Background -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <canvas id="antigravity-canvas" class="w-full h-full"></canvas>
+    
+    <!-- Dynamic Ambient Glowing Orbs that shift with scroll -->
+    <div id="ambient-orb-1" class="absolute -top-40 left-1/2 -translate-x-1/2 w-[850px] h-[550px] bg-blue-500/10 dark:bg-blue-600/15 rounded-full blur-[150px] pointer-events-none transition-transform duration-700 ease-out"></div>
+    <div id="ambient-orb-2" class="absolute top-[40%] -right-40 w-[650px] h-[450px] bg-cyan-500/10 dark:bg-cyan-600/10 rounded-full blur-[140px] pointer-events-none transition-transform duration-700 ease-out"></div>
+    <div id="ambient-orb-3" class="absolute top-[70%] -left-40 w-[600px] h-[500px] bg-purple-500/10 dark:bg-purple-600/10 rounded-full blur-[140px] pointer-events-none transition-transform duration-700 ease-out"></div>
+  </div>
+
+  <!-- Global Navigation Header -->
+  <header class="sticky top-0 z-50 w-full transition-all duration-300 backdrop-blur-xl bg-white/70 dark:bg-[#08090c]/80 border-b border-slate-200/60 dark:border-white/[0.06]" id="main-header">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="#" class="flex items-center gap-3 group edge-target">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-sky-500 to-indigo-500 p-0.5 shadow-glow-blue transition-transform duration-300 group-hover:scale-110">
+          <div class="w-full h-full bg-white dark:bg-[#0a0c12] rounded-[10px] flex items-center justify-center">
+            <svg class="w-5 h-5 text-blue-600 dark:text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+          </div>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-lg font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
+            DriveForge
+            <span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded-full bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-sky-400 border border-blue-500/20 font-semibold tracking-wider">MVP</span>
+          </span>
+          <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono tracking-wide">RT-Thread Driver Agent</span>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation Links -->
+      <nav class="hidden xl:flex items-center gap-1 text-sm font-medium text-slate-600 dark:text-slate-300" aria-label="页面导航">
+        <a href="#workflow" class="nav-link px-3.5 py-1.5 rounded-full hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] edge-target">工作流</a>
+        <a href="#principles" class="nav-link px-3.5 py-1.5 rounded-full hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] edge-target">三大不变量</a>
+        <a href="#features" class="nav-link px-3.5 py-1.5 rounded-full hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] edge-target">特性探索</a>
+        <a href="#playground" class="nav-link px-3.5 py-1.5 rounded-full text-blue-600 dark:text-sky-300 hover:text-blue-700 dark:hover:text-white hover:bg-blue-50 dark:hover:bg-sky-500/10 flex items-center gap-1.5 edge-target">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-sky-400 animate-ping"></span>
+          在线仿真
+        </a>
+        <a href="#quickstart" class="nav-link px-3.5 py-1.5 rounded-full hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] edge-target">快速开始</a>
+        <a href="#matrix" class="nav-link px-3.5 py-1.5 rounded-full hover:text-blue-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] edge-target">生态矩阵</a>
+      </nav>
+
+      <!-- Right Header Actions (Theme Toggle & CTA) -->
+      <div class="flex items-center gap-3">
+        <button id="mobile-menu-button" class="xl:hidden w-9 h-9 rounded-full glass-panel flex items-center justify-center text-slate-600 dark:text-slate-300 pressable" aria-label="打开页面导航" aria-expanded="false" aria-controls="mobile-menu">
+          <span class="flex flex-col gap-1.5" aria-hidden="true">
+            <span class="menu-line block w-4 h-px bg-current"></span>
+            <span class="menu-line block w-4 h-px bg-current"></span>
+          </span>
+        </button>
+
+        <!-- Motion Toggle: the showcase defaults to full motion, with an explicit pause control. -->
+        <button id="motion-toggle" class="w-9 h-9 rounded-full glass-panel flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-white edge-target pressable" title="暂停页面动效" aria-label="暂停页面动效" aria-pressed="false">
+          <svg id="motion-on-icon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
+          <svg id="motion-off-icon" class="w-4 h-4 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="m7 4 12 8-12 8V4Z"/></svg>
+        </button>
+        
+        <!-- Light/Dark Mode Switcher -->
+        <button id="theme-toggle" class="w-9 h-9 rounded-full glass-panel flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-white edge-target pressable" title="切换深色/浅色模式" aria-label="切换深色/浅色模式">
+          <!-- Sun Icon (shows in dark) -->
+          <svg id="sun-icon" class="w-4 h-4 hidden dark:block text-amber-300 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <!-- Moon Icon (shows in light) -->
+          <svg id="moon-icon" class="w-4 h-4 block dark:hidden text-slate-700 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <!-- GitHub Repo Button -->
+        <a href="https://github.com/Luyuan3014/DriveForge" target="_blank" rel="noopener" class="hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white glass-panel transition-all edge-target">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
+          </svg>
+          GitHub
+        </a>
+
+        <!-- Launch Console CTA -->
+        <a href="#playground" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-blue-600 via-sky-500 to-blue-500 hover:from-blue-500 hover:to-sky-400 shadow-glow-blue edge-target pressable">
+          <span>进入控制台</span>
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+
+      </div>
+
+    </div>
+    <div id="mobile-menu" class="xl:hidden border-t border-transparent" aria-hidden="true" inert>
+      <div>
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 py-3 grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm font-medium" aria-label="移动端页面导航">
+          <a href="#workflow" class="nav-link rounded-xl px-4 py-3 text-slate-600 dark:text-slate-300 bg-slate-100/70 dark:bg-white/[0.04]">工作流</a>
+          <a href="#principles" class="nav-link rounded-xl px-4 py-3 text-slate-600 dark:text-slate-300 bg-slate-100/70 dark:bg-white/[0.04]">三大不变量</a>
+          <a href="#features" class="nav-link rounded-xl px-4 py-3 text-slate-600 dark:text-slate-300 bg-slate-100/70 dark:bg-white/[0.04]">特性探索</a>
+          <a href="#playground" class="nav-link rounded-xl px-4 py-3 text-slate-600 dark:text-slate-300 bg-slate-100/70 dark:bg-white/[0.04]">在线仿真</a>
+          <a href="#quickstart" class="nav-link rounded-xl px-4 py-3 text-slate-600 dark:text-slate-300 bg-slate-100/70 dark:bg-white/[0.04]">快速开始</a>
+          <a href="#matrix" class="nav-link rounded-xl px-4 py-3 text-slate-600 dark:text-slate-300 bg-slate-100/70 dark:bg-white/[0.04]">生态矩阵</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section with Attio-Style Scroll Parallax Expansion & Orbiting Satellites -->
+  <section class="relative z-10 overflow-visible" id="hero-section">
+    
+    <!-- Parallax Scroll Track: Controls scroll distance on desktop -->
+    <div id="hero-scroll-track" class="relative w-full">
+      
+      <!-- Sticky Viewport Stage -->
+      <div id="hero-sticky-stage" class="w-full flex flex-col items-center justify-start px-4 sm:px-6 lg:px-8">
+        
+        <!-- Top Intro Header: Compact & Impactful -->
+        <div id="hero-intro" class="max-w-3xl mx-auto text-center flex flex-col items-center will-change-transform">
+          
+          <!-- Status Badge -->
+          <div class="inline-flex items-center gap-2.5 px-3.5 py-1 rounded-full glass-panel border border-sky-400/40 text-xs text-sky-600 dark:text-sky-200 shadow-glow-cyan mb-3.5 edge-target">
+            <span class="w-2 h-2 rounded-full bg-sky-500 dark:bg-sky-400 animate-ping"></span>
+            <span class="font-medium">DriveForge 0.1.0 MVP 已就绪</span>
+            <span class="text-slate-400 dark:text-slate-500">|</span>
+            <span class="text-slate-600 dark:text-slate-400 font-mono">Evidence-First Autonomous Agent</span>
+          </div>
+
+          <!-- Main Headline -->
+          <h1 class="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 dark:text-white mb-3 max-w-3xl leading-[1.14]">
+            让嵌入式驱动开发<br>
+            进入 <span class="gradient-text-hero">自主闭环</span> 时代
+          </h1>
+
+          <!-- Subtitle -->
+          <p class="text-xs sm:text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-2xl mb-4 leading-relaxed font-normal">
+            专为 <span class="text-blue-600 dark:text-sky-400 font-semibold">RT-Thread</span> 外设驱动设计的工程智能体。需求解析、硬件事实门禁、复用规划、构建、烧录与实机验证贯通为一条<span class="text-slate-900 dark:text-white font-medium">严谨、可审查、零幻觉</span>的确定性流水线。
+          </p>
+
+          <!-- Action Buttons with Edge Illumination -->
+          <div class="flex flex-wrap items-center justify-center gap-2.5 mb-3">
+            <a href="#quickstart" class="px-4 py-2.5 rounded-full text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-all shadow-glow-blue flex items-center gap-2 edge-target">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              快速上手 Quickstart
+            </a>
+            <a href="#playground" class="px-4 py-2.5 rounded-full text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 glass-panel hover:text-blue-600 dark:hover:text-white transition-all flex items-center gap-2 edge-target">
+              <svg class="w-4 h-4 text-blue-500 dark:text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+              交互式仿真控制台
+            </a>
+            <div class="relative group">
+              <button onclick="copyCommand('python tools/driveforge.py --version')" class="px-3 py-2.5 rounded-full text-xs font-mono text-slate-700 dark:text-slate-300 glass-panel hover:text-blue-600 dark:hover:text-white transition-all flex items-center gap-2 edge-target">
+                <span class="text-slate-400 dark:text-slate-500">$</span>
+                <span>tools/driveforge.py --version</span>
+                <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-500 dark:group-hover:text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              </button>
+              <span id="copy-badge" class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] text-blue-600 dark:text-sky-400 bg-white dark:bg-sky-950/90 border border-blue-500/30 dark:border-sky-500/30 px-2 py-0.5 rounded opacity-0 transition-opacity pointer-events-none shadow-md">已复制命令!</span>
+            </div>
+          </div>
+
+          <!-- Scroll Hint (Desktop only) -->
+          <div id="hero-scroll-hint" class="hidden lg:flex items-center gap-2 text-[11px] font-mono text-slate-400 dark:text-slate-500 mb-1.5 transition-opacity duration-300">
+            <span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-ping"></span>
+            <span>向下滚动展开智能体编排工作台</span>
+            <svg class="w-3 h-3 animate-bounce text-sky-500 dark:text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+          </div>
+
+        </div>
+
+        <!-- Workflow Scroll Anchor -->
+        <div id="workflow" class="h-px w-full" aria-hidden="true"></div>
+
+        <!-- Responsive Constellation Stage: Holds Central Card & 3 Satellites -->
+        <div id="hero-stage-container" class="relative w-full max-w-4xl lg:max-w-5xl xl:max-w-[990px] 2xl:max-w-[1140px] mt-2 flex flex-col items-center justify-center will-change-transform">
+
+          <!-- 3 Satellite Cards: Attio-Style Scroll Parallax Emergence -->
+          <!-- On Widescreen (xl: >= 1280px): Flanked on left & right wings, emerging on scroll, ZERO OVERLAP with console -->
+          <!-- On Tablet & Laptop (< 1280px): Responsive 3-card deck docked above console, emerging on scroll -->
+          <!-- On Mobile (< 640px): Clean vertical stack, revealing on scroll -->
+          <div id="satellite-container" class="w-full grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3 xl:mb-0 xl:block pointer-events-none">
+
+            <!-- SATELLITE CARD 1: Fact Confidence Gate (Top-Left Wing) -->
+            <div id="satellite-1" class="satellite-card xl:absolute xl:top-6 xl:right-[calc(100%+0.5rem)] 2xl:right-[calc(100%+0.75rem)] z-30 w-full xl:w-[188px] 2xl:w-[204px] cursor-pointer edge-target" data-target-step="2" title="查看硬件事实门禁">
+              <div class="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-slate-200 dark:border-white/[0.08]">
+                <div class="flex items-center gap-1.5">
+                  <div class="flex items-center gap-1 mr-1">
+                    <span class="w-2 h-2 rounded-full bg-rose-500/80 inline-block shadow-sm"></span>
+                    <span class="w-2 h-2 rounded-full bg-amber-500/80 inline-block shadow-sm"></span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500/80 inline-block shadow-sm"></span>
+                  </div>
+                  <span class="text-sky-600 dark:text-sky-300 font-mono text-[11px] font-bold tracking-tight">FACT GATE</span>
+                </div>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">VERIFIED</span>
+              </div>
+              <div class="space-y-1 text-[11px] font-mono">
+                <div class="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                  <span class="text-slate-400">PIN:</span>
+                  <span class="font-semibold text-emerald-600 dark:text-emerald-400">PD0 (CAN0_RX)</span>
+                </div>
+                <div class="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                  <span class="text-slate-400">EVIDENCE:</span>
+                  <span class="text-sky-600 dark:text-sky-300 font-medium">board.h:42</span>
+                </div>
+                <div class="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                  <span class="text-slate-400">CLOCK:</span>
+                  <span class="text-purple-600 dark:text-purple-300">RCU_CAN0</span>
+                </div>
+              </div>
+              <div class="mt-2 pt-1 border-t border-slate-200 dark:border-white/[0.06] text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span>源码语法树推导 · 零臆造</span>
+              </div>
+            </div>
+
+            <!-- SATELLITE CARD 2: Reuse Strategy Pill (Bottom-Left Wing) -->
+            <div id="satellite-2" class="satellite-card xl:absolute xl:bottom-8 xl:right-[calc(100%+0.5rem)] 2xl:right-[calc(100%+0.75rem)] z-30 w-full xl:w-[188px] 2xl:w-[204px] cursor-pointer edge-target" data-target-step="3" title="查看驱动复用方案">
+              <div class="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-slate-200 dark:border-white/[0.08]">
+                <div class="flex items-center gap-1.5">
+                  <div class="flex items-center gap-1 mr-1">
+                    <span class="w-2 h-2 rounded-full bg-rose-500/80 inline-block shadow-sm"></span>
+                    <span class="w-2 h-2 rounded-full bg-amber-500/80 inline-block shadow-sm"></span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500/80 inline-block shadow-sm"></span>
+                  </div>
+                  <span class="text-blue-600 dark:text-sky-300 font-mono text-[11px] font-bold tracking-tight">REUSE PLAN</span>
+                </div>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-500/30">ADAPT 95%</span>
+              </div>
+              <div class="space-y-1 text-[11px] font-mono">
+                <div class="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                  <span class="text-slate-400">SOURCE:</span>
+                  <span class="text-amber-500 font-medium">drv_can1.c</span>
+                </div>
+                <div class="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                  <span class="text-slate-400">TARGET:</span>
+                  <span class="text-emerald-500 font-semibold">drv_can.c</span>
+                </div>
+                <div class="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                  <span class="text-slate-400">DIFF:</span>
+                  <span class="text-emerald-600 dark:text-emerald-400 font-semibold">+38 / -4 lines</span>
+                </div>
+              </div>
+              <div class="mt-2 pt-1 border-t border-slate-200 dark:border-white/[0.06] text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+                <span>极简侵入 · 贴合原有代码规范</span>
+              </div>
+            </div>
+
+            <!-- SATELLITE CARD 3: HIL Telemetry Card (Right Wing) -->
+            <div id="satellite-3" class="satellite-card xl:absolute xl:top-14 xl:left-[calc(100%+0.5rem)] 2xl:left-[calc(100%+0.75rem)] z-30 w-full xl:w-[188px] 2xl:w-[204px] cursor-pointer edge-target" data-target-step="6" title="查看实机验证遥测">
+              <div class="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-slate-200 dark:border-white/[0.08]">
+                <div class="flex items-center gap-1.5">
+                  <div class="flex items-center gap-1 mr-1">
+                    <span class="w-2 h-2 rounded-full bg-rose-500/80 inline-block shadow-sm"></span>
+                    <span class="w-2 h-2 rounded-full bg-amber-500/80 inline-block shadow-sm"></span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500/80 inline-block shadow-sm"></span>
+                  </div>
+                  <span class="text-emerald-600 dark:text-emerald-300 font-mono text-[11px] font-bold tracking-tight">HIL TELEMETRY</span>
+                </div>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>LIVE</span>
+                </span>
+              </div>
+              <div class="space-y-1 text-[11px] font-mono">
+                <div class="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                  <span class="text-slate-400">PROBE:</span>
+                  <span class="font-semibold text-slate-800 dark:text-slate-200">J-Link SWD</span>
+                </div>
+                <div class="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                  <span class="text-slate-400">LOOPBACK:</span>
+                  <span class="text-emerald-600 dark:text-emerald-400 font-semibold">100/100 (0 Loss)</span>
+                </div>
+                <div class="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                  <span class="text-slate-400">LATENCY:</span>
+                  <span class="text-sky-600 dark:text-sky-300">&lt; 0.12ms OK</span>
+                </div>
+              </div>
+              <div class="mt-2 pt-1 border-t border-slate-200 dark:border-white/[0.06] text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span>实机总线自闭环 · 非盲目重构</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- CENTER MAIN CARD: DriveForge Autonomous Orchestrator -->
+          <!-- Clean, fully rendered both columns, ZERO empty black void -->
+          <div id="hero-console" class="hero-main-card w-full glass-panel rounded-2xl overflow-hidden border border-slate-200 dark:border-white/[0.12] shadow-2xl relative text-left will-change-transform">
+            
+            <!-- Inner Content Wrapper for Pointer Tilt -->
+            <div id="hero-console-inner" class="w-full h-full will-change-transform">
+              
+              <!-- Console Header -->
+              <div class="h-11 bg-slate-100/90 dark:bg-[#0d0f16] px-4 flex items-center justify-between border-b border-slate-200 dark:border-white/[0.08]">
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                  <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                  <div class="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+                  <span id="hero-project-title" class="ml-2 text-xs font-mono text-slate-700 dark:text-slate-300 font-medium">DriveForge Orchestrator · GD32F470ZIT6 [CAN0]</span>
+                </div>
+                <div class="flex items-center gap-3 text-xs font-mono">
+                  <span id="hero-global-status-badge" class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 font-semibold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span>
+                    <span id="hero-global-status-text">RUNNING</span>
+                  </span>
+                  <span id="hero-rtos-version" class="text-slate-500 hidden sm:inline">RT-Thread 5.1.0</span>
+                </div>
+              </div>
+
+              <!-- Pipeline Track Bar (Interactive Step Nodes) -->
+              <div class="bg-slate-50/90 dark:bg-[#11141e]/90 p-3.5 border-b border-slate-200 dark:border-white/[0.06] overflow-x-auto">
+                <div class="flex items-center justify-between min-w-[680px] text-xs font-medium">
+                  
+                  <div id="pipe-step-1" class="pipe-step-node flex items-center gap-2 text-sky-600 dark:text-sky-300 transition-all duration-200">
+                    <div class="pipe-node-badge w-6 h-6 rounded-full bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-400/70 flex items-center justify-center font-bold text-[10px]">1</div>
+                    <span>需求扫描</span>
+                  </div>
+                  <div id="step-line-1" class="pipe-step-line w-6 h-[1.5px] bg-sky-400/60 transition-all duration-200"></div>
+
+                  <div id="pipe-step-2" class="pipe-step-node flex items-center gap-2 text-slate-400 dark:text-slate-500 transition-all duration-200">
+                    <div class="pipe-node-badge w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 flex items-center justify-center font-bold text-[10px]">2</div>
+                    <span>硬件事实门禁</span>
+                  </div>
+                  <div id="step-line-2" class="pipe-step-line w-6 h-[1px] bg-slate-300 dark:bg-slate-800 transition-all duration-200"></div>
+
+                  <div id="pipe-step-3" class="pipe-step-node flex items-center gap-2 text-slate-400 dark:text-slate-500 transition-all duration-200">
+                    <div class="pipe-node-badge w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 flex items-center justify-center font-bold text-[10px]">3</div>
+                    <span>复用优先策略</span>
+                  </div>
+                  <div id="step-line-3" class="pipe-step-line w-6 h-[1px] bg-slate-300 dark:bg-slate-800 transition-all duration-200"></div>
+
+                  <div id="pipe-step-4" class="pipe-step-node flex items-center gap-2 text-slate-400 dark:text-slate-500 transition-all duration-200">
+                    <div class="pipe-node-badge w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 flex items-center justify-center font-bold text-[10px]">4</div>
+                    <span>代码实施</span>
+                  </div>
+                  <div id="step-line-4" class="pipe-step-line w-6 h-[1px] bg-slate-300 dark:bg-slate-800 transition-all duration-200"></div>
+
+                  <div id="pipe-step-5" class="pipe-step-node flex items-center gap-2 text-slate-400 dark:text-slate-500 transition-all duration-200">
+                    <div class="pipe-node-badge w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 flex items-center justify-center font-bold text-[10px]">5</div>
+                    <span>构建 SCons</span>
+                  </div>
+                  <div id="step-line-5" class="pipe-step-line w-6 h-[1px] bg-slate-300 dark:bg-slate-800 transition-all duration-200"></div>
+
+                  <div id="pipe-step-6" class="pipe-step-node flex items-center gap-2 text-slate-400 dark:text-slate-500 transition-all duration-200">
+                    <div class="pipe-node-badge w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 flex items-center justify-center font-bold text-[10px]">6</div>
+                    <span>烧录 & RTT实测</span>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- Unfolded Dual-Column Workspace Body -->
+              <div class="grid grid-cols-1 lg:grid-cols-12 bg-slate-900 text-slate-200 dark:bg-[#090b10] divide-y lg:divide-y-0 lg:divide-x divide-slate-800 dark:divide-white/[0.08]">
+                
+                <!-- Left Column: High-Tech CLI Execution Stream (7 cols) -->
+                <div id="hero-terminal-stream" class="lg:col-span-7 p-4 sm:p-5 font-mono text-xs space-y-1.5 h-[380px] sm:h-[400px] overflow-y-auto scroll-smooth">
+                  <!-- Default Initial Server Rendered Logs (Engine will take over stream) -->
+                  <div class="terminal-line text-slate-400 font-semibold"><span class="text-sky-400"># </span>Step 1: Workspace scanning & hardware fact gating</div>
+                  <div class="terminal-line text-slate-100 font-bold"><span class="text-emerald-400 mr-1.5">$</span>driveforge plan ./bsp/gd32f470 --request "适配 CAN0 驱动" --rx-pin PD0 --tx-pin PD1</div>
+                  <div class="terminal-line text-slate-300">→ [Scan] 检测到工程环境: RT-Thread 5.1.0, SCons 4.5.2, GCC 10.3.1</div>
+                  <div class="terminal-line text-slate-300">→ [Fact Gate] 引脚 PD0 (CAN0_RX), PD1 (CAN0_TX) 经 <span class="text-emerald-400 font-semibold">board.h:42</span> 语法树溯源确证 (VERIFIED)</div>
+                  <div class="terminal-line text-slate-300">→ [Fact Gate] 时钟外设 RCU_CAN0 在 CMSIS 头文件中确证存在</div>
+                  <div class="terminal-line text-slate-400 pt-1 font-semibold"><span class="text-emerald-400"># </span>Step 2: Closed-loop build, flash & physical loopback verify</div>
+                  <div class="terminal-line text-slate-100 font-bold"><span class="text-emerald-400 mr-1.5">$</span>driveforge run ./bsp/gd32f470 --execute-build --execute-flash --execute-test</div>
+                  <div class="terminal-line text-emerald-400">✓ [Build] SCons 构建完全通过: 0 错误, 0 警告 (耗时: 3.21s)</div>
+                  <div class="terminal-line text-emerald-400">✓ [Flash] J-Link 成功烧录 256KB 至 0x08000000 (校验 100%)</div>
+                  <div class="terminal-line text-emerald-400">✓ [Test] 物理回环实测: 100 帧全收发成功 · 0 丢包 · 延迟: 0.12ms</div>
+                  <div class="terminal-line text-sky-400 font-semibold flex items-center gap-2 pt-1">
+                    <span>● Verified Artifacts:</span>
+                    <span class="text-slate-300 font-normal text-[11px]">hardware_manifest.yaml, driver_plan.yaml, verification_report.json</span>
+                  </div>
+                </div>
+
+                <!-- Right Column: Real-time Telemetry & Metrics Dashboard (5 cols) -->
+                <div id="hero-expanded-panel" class="lg:col-span-5 p-4 sm:p-5 bg-slate-950/60 dark:bg-[#07090e]/70 flex flex-col justify-between space-y-4">
+                  
+                  <div>
+                    <!-- Panel Title & Pulse -->
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-800 dark:border-white/[0.08] text-xs font-mono">
+                      <span class="text-slate-300 font-semibold flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span id="hero-telemetry-phase">实时回环遥测 (HIL Live)</span>
+                      </span>
+                      <span id="hero-telemetry-status" class="text-emerald-400 font-semibold">100 / 100 PASS</span>
+                    </div>
+
+                    <!-- Visual Loopback Pulse Track -->
+                    <div class="mt-3 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 dark:border-white/[0.06]">
+                      <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-1.5">
+                        <span>CAN0_TX (PD1)</span>
+                        <span id="hero-loopback-label" class="text-sky-400">1 Mbps Loopback</span>
+                        <span>CAN0_RX (PD0)</span>
+                      </div>
+                      <div id="hero-loopback-track" class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden relative">
+                        <div class="h-full bg-gradient-to-r from-blue-500 via-sky-400 to-emerald-400 rounded-full loopback-bar-pulse transition-all duration-300" style="width: 100%;"></div>
+                      </div>
+                    </div>
+
+                    <!-- Metrics Matrix -->
+                    <div class="mt-3 grid grid-cols-2 gap-2 text-[11px] font-mono">
+                      <div class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.05]">
+                        <span class="text-slate-400 block text-[10px]">MCU 目标内核</span>
+                        <span id="hero-metric-mcu" class="text-slate-200 font-semibold">Cortex-M4 240MHz</span>
+                      </div>
+                      <div class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.05]">
+                        <span class="text-slate-400 block text-[10px]">总线与外设</span>
+                        <span id="hero-metric-bus" class="text-sky-300 font-semibold">APB1 @ 45MHz</span>
+                      </div>
+                      <div class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.05]">
+                        <span class="text-slate-400 block text-[10px]">SCons 构建耗时</span>
+                        <span id="hero-metric-build" class="text-emerald-400 font-semibold">3.21s (零告警)</span>
+                      </div>
+                      <div class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.05]">
+                        <span class="text-slate-400 block text-[10px]">固件空间增量</span>
+                        <span id="hero-metric-flash" class="text-purple-300 font-semibold">+2.4KB Flash</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Quick Action in Console -->
+                  <div class="pt-2 border-t border-slate-800/80 dark:border-white/[0.06]">
+                    <a href="#playground" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-blue-600/90 to-sky-500/90 hover:from-blue-500 hover:to-sky-400 text-white font-mono text-xs font-semibold flex items-center justify-center gap-2 shadow-glow-blue transition-all edge-target pressable">
+                      <span>在在线控制台中复现此流程</span>
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </a>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- Three Core Pillars Section -->
+  <section id="principles" class="relative z-10 py-24 border-t border-slate-200/60 dark:border-white/[0.06] bg-slate-100/50 dark:bg-[#0c0e15]/60">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="reveal text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-mono uppercase tracking-widest text-blue-600 dark:text-sky-400 mb-3 block font-semibold">Three Core Invariants</span>
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-4">
+          坚守工程底线的三大不变量
+        </h2>
+        <p class="text-slate-600 dark:text-slate-400 text-sm sm:text-base">
+          大语言模型很容易凭空捏造引脚定义与外设寄存器。DriveForge 专为嵌入式确定性而生，每一行配置和代码均具备完整证据链。
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Card 1 -->
+        <div class="reveal glass-panel rounded-2xl p-8 glass-card-hover relative group edge-target">
+          <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <span class="text-xs font-mono text-blue-600 dark:text-sky-400 tracking-wider font-semibold">INVARIANT 01</span>
+          <h3 class="text-xl font-bold text-slate-900 dark:text-white mt-1 mb-3">证据链优先，拒绝凭空臆造</h3>
+          <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+            引脚、PinMux、RCU/APB 时钟、中断向量 IRQ 必须源自明确的用户输入、工程头文件、板级配置或官方 SDK。若关键证据不足，直接进入 <code class="text-amber-600 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-1 py-0.5 rounded font-mono text-xs">BLOCKED</code> 状态。
+          </p>
+          <div class="mt-6 pt-4 border-t border-slate-200 dark:border-white/[0.06] text-xs font-mono text-slate-500 dark:text-slate-400 flex items-center gap-2">
+            <span class="text-emerald-500">✓</span> Evidence-backed Facts
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="reveal glass-panel rounded-2xl p-8 glass-card-hover relative group edge-target">
+          <div class="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </div>
+          <span class="text-xs font-mono text-blue-600 dark:text-sky-400 tracking-wider font-semibold">INVARIANT 02</span>
+          <h3 class="text-xl font-bold text-slate-900 dark:text-white mt-1 mb-3">复用优先，极简代码侵入</h3>
+          <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+            严守 <span class="text-slate-900 dark:text-slate-200 font-medium">已有工程实现 → 同系列芯片驱动 → 官方 BSP 驱动 → 厂商 SDK → 全新编写</span> 的降级策略。尽可能保留项目原汁原味的编码习惯，绝不进行盲目暴力重构。
+          </p>
+          <div class="mt-6 pt-4 border-t border-slate-200 dark:border-white/[0.06] text-xs font-mono text-slate-500 dark:text-slate-400 flex items-center gap-2">
+            <span class="text-sky-500">✓</span> Adapt First, Rewrite Last
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="reveal glass-panel rounded-2xl p-8 glass-card-hover relative group edge-target">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <span class="text-xs font-mono text-blue-600 dark:text-sky-400 tracking-wider font-semibold">INVARIANT 03</span>
+          <h3 class="text-xl font-bold text-slate-900 dark:text-white mt-1 mb-3">显式授权，实机闭环验证</h3>
+          <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+            阶段职责边界分明：编译通过不等于烧录成功，烧录成功不代表外设在真实物理总线上正常运转。显式接入 J-Link、OpenOCD、ST-Link 与 RTT/串口回环，实测通过才评定为 <code class="text-emerald-600 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-1 py-0.5 rounded font-mono text-xs">VERIFIED</code>。
+          </p>
+          <div class="mt-6 pt-4 border-t border-slate-200 dark:border-white/[0.06] text-xs font-mono text-slate-500 dark:text-slate-400 flex items-center gap-2">
+            <span class="text-emerald-500">✓</span> Closed-Loop Verification
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Feature Explorer Section (Alternating Cards like antigravity.google) -->
+  <section id="features" class="relative z-10 py-24 border-t border-slate-200/60 dark:border-white/[0.06]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-28">
+      
+      <!-- Section Header -->
+      <div class="reveal text-center max-w-2xl mx-auto">
+        <span class="text-xs font-mono uppercase tracking-widest text-blue-600 dark:text-sky-400 mb-2 block font-semibold">Feature Explorer</span>
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
+          深谙嵌入式底层规律的工程架构
+        </h2>
+      </div>
+
+      <!-- Feature 1: Fact Manifest & Confidence Gate -->
+      <div class="reveal grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        <div class="lg:col-span-6 space-y-6">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs text-blue-600 dark:text-sky-300 font-mono font-semibold">
+            01 / HARDWARE MANIFEST ENGINE
+          </div>
+          <h3 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-snug">
+            硬件事实清单与置信度追溯
+          </h3>
+          <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
+            DriveForge 的 Analyzer 会全面扫描目标工程中的 C/C++ 源码、Kconfig、板级头文件与 SConscript。每一个识别出的外设引脚或时钟门控，都精确记录文件路径、行号与摘录证据。
+          </p>
+          <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-300">
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-blue-500/15 dark:bg-sky-500/20 text-blue-600 dark:text-sky-400 flex items-center justify-center shrink-0 mt-0.5 text-xs">✓</span>
+              <span>置信度分级：<span class="text-emerald-600 dark:text-emerald-300 font-mono font-semibold">VERIFIED</span> / <span class="text-sky-600 dark:text-sky-300 font-mono font-semibold">HIGH</span> / <span class="text-amber-600 dark:text-amber-300 font-mono font-semibold">MEDIUM</span> / <span class="text-rose-600 dark:text-rose-300 font-mono font-semibold">LOW</span></span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-blue-500/15 dark:bg-sky-500/20 text-blue-600 dark:text-sky-400 flex items-center justify-center shrink-0 mt-0.5 text-xs">✓</span>
+              <span>用户显式配置优先保护，并自动隔离标记为 <span class="font-mono text-slate-900 dark:text-slate-100">user_config</span>，绝不与工程证据混淆</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-blue-500/15 dark:bg-sky-500/20 text-blue-600 dark:text-sky-400 flex items-center justify-center shrink-0 mt-0.5 text-xs">✓</span>
+              <span>严格校验 GPIO 范围（如 PA0..PK15）与时钟正整数合法性</span>
+            </li>
+          </ul>
+        </div>
+        <div class="lg:col-span-6">
+          <div class="glass-panel rounded-2xl p-6 shadow-xl font-mono text-xs overflow-x-auto bg-slate-900 text-slate-200 dark:bg-[#0d1017] edge-target">
+            <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-700 dark:border-white/[0.08] text-slate-400">
+              <span class="text-sky-400 font-semibold">hardware_manifest.yaml</span>
+              <span class="text-[10px] bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded">GATED: PASS</span>
+            </div>
+            <pre class="leading-5"><code><span class="text-purple-400">target_peripheral</span>: <span class="text-amber-300">"CAN0"</span>
+<span class="text-purple-400">mcu</span>: <span class="text-amber-300">"GD32F470ZIT6"</span>
+<span class="text-purple-400">facts</span>:
+  <span class="text-sky-400">rx_pin</span>:
+    <span class="text-purple-400">value</span>: <span class="text-emerald-300">"PD0"</span>
+    <span class="text-purple-400">confidence</span>: <span class="text-emerald-400">"VERIFIED"</span>
+    <span class="text-purple-400">source</span>: <span class="text-slate-400">"project:board_config"</span>
+    <span class="text-purple-400">evidence</span>:
+      - <span class="text-purple-400">path</span>: <span class="text-slate-300">"board/board.h"</span>
+        <span class="text-purple-400">line</span>: <span class="text-amber-300">42</span>
+        <span class="text-purple-400">excerpt</span>: <span class="text-slate-400">"#define CAN0_RX_PIN PD0"</span>
+  <span class="text-sky-400">clock_gate</span>:
+    <span class="text-purple-400">value</span>: <span class="text-emerald-300">"RCU_CAN0"</span>
+    <span class="text-purple-400">confidence</span>: <span class="text-emerald-400">"HIGH"</span>
+    <span class="text-purple-400">source</span>: <span class="text-slate-400">"sdk:gd32f4xx_rcu.h"</span></code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 2: Reuse-First Planner & Codex Skill -->
+      <div class="reveal grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        <div class="lg:col-span-6 lg:order-2 space-y-6">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-xs text-blue-600 dark:text-sky-300 font-mono font-semibold">
+            02 / ADAPT-FIRST PLANNER & AGY SKILL
+          </div>
+          <h3 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-snug">
+            复用规划器与 Codex/Antigravity 智能体协同
+          </h3>
+          <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
+            DriveForge 拥有分层的智能体架构：确定性的 CLI 负责扫描拓扑、事实门禁与测试运行，而仓库根目录的 <code class="text-blue-600 dark:text-sky-300 font-mono">SKILL.md</code> 则将嵌入式专家开发规范系统化注入大模型智能体。
+          </p>
+          <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-300">
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-blue-500/15 dark:bg-sky-500/20 text-blue-600 dark:text-sky-400 flex items-center justify-center shrink-0 mt-0.5 text-xs">✓</span>
+              <span>智能识别参考实例：若工程已有 <code class="text-amber-600 dark:text-amber-300 font-mono font-semibold">CAN1</code>，自动生成同源适配计划（<code class="text-blue-600 dark:text-sky-300 font-mono">adapt_existing_instance</code>）</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-blue-500/15 dark:bg-sky-500/20 text-blue-600 dark:text-sky-400 flex items-center justify-center shrink-0 mt-0.5 text-xs">✓</span>
+              <span>记录源码哈希基线（<code class="font-mono text-slate-800 dark:text-slate-300">baseline.json</code>），任何意外修改或副作用一目了然</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-blue-500/15 dark:bg-sky-500/20 text-blue-600 dark:text-sky-400 flex items-center justify-center shrink-0 mt-0.5 text-xs">✓</span>
+              <span>支持 <code class="font-mono text-slate-800 dark:text-slate-300">commands.patch</code> 和 <code class="font-mono text-slate-800 dark:text-slate-300">commands.repair</code> 接入自动化修复闭环</span>
+            </li>
+          </ul>
+        </div>
+        <div class="lg:col-span-6 lg:order-1">
+          <div class="glass-panel rounded-2xl p-6 shadow-xl font-mono text-xs overflow-x-auto bg-slate-900 text-slate-200 dark:bg-[#0d1017] edge-target">
+            <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-700 dark:border-white/[0.08] text-slate-400">
+              <span class="text-sky-400 font-semibold">driver_plan.yaml</span>
+              <span class="text-[10px] bg-sky-500/15 text-sky-300 border border-sky-500/30 px-2 py-0.5 rounded">STRATEGY: ADAPT</span>
+            </div>
+            <pre class="leading-5"><code><span class="text-purple-400">strategy</span>: <span class="text-emerald-300">"adapt_existing_instance"</span>
+<span class="text-purple-400">reference_file</span>: <span class="text-amber-300">"drivers/drv_can1.c"</span>
+<span class="text-purple-400">target_file</span>: <span class="text-amber-300">"drivers/drv_can.c"</span>
+<span class="text-purple-400">reuse_confidence</span>: <span class="text-emerald-400">0.95</span>
+<span class="text-purple-400">steps</span>:
+  - <span class="text-sky-400">id</span>: <span class="text-slate-300">"pin_init"</span>
+    <span class="text-purple-400">action</span>: <span class="text-slate-400">"Configure PD0 (RX) / PD1 (TX) with GPIO AF9"</span>
+  - <span class="text-sky-400">id</span>: <span class="text-slate-300">"clock_enable"</span>
+    <span class="text-purple-400">action</span>: <span class="text-slate-400">"rcu_periph_clock_enable(RCU_CAN0)"</span>
+  - <span class="text-sky-400">id</span>: <span class="text-slate-300">"rt_device_register"</span>
+    <span class="text-purple-400">action</span>: <span class="text-slate-400">"rt_hw_can_register(&can0_dev, \"can0\")"</span>
+<span class="text-purple-400">risks</span>:
+  - <span class="text-amber-300">"CAN0 and CAN1 share filter banks on GD32; ensure bank config match"</span></code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 3: Playbooks & Verification Matrix -->
+      <div class="reveal grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        <div class="lg:col-span-6 space-y-6">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-600 dark:text-emerald-300 font-mono font-semibold">
+            03 / PLAYBOOKS & PHYSICAL LOOP
+          </div>
+          <h3 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-snug">
+            标准化外设 Playbooks 与真实回环测试
+          </h3>
+          <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
+            DriveForge 针对 7 大类常用外设预置了标准验收准则（Playbooks）。无论是 CAN 帧收发、UART 乱码检测、SPI Flash 读写 ID 还是 ADC 线性采样，均提供可执行的最小测试准则。
+          </p>
+          <div class="grid grid-cols-2 gap-3 pt-2 text-xs font-mono">
+            <div class="p-3 rounded-xl bg-white/60 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.06] edge-target">
+              <span class="text-blue-600 dark:text-sky-400 font-semibold block mb-1">CAN Playbook</span>
+              <span class="text-slate-500 dark:text-slate-400">波特率自适应、回环模式验证、仲裁丢失排查</span>
+            </div>
+            <div class="p-3 rounded-xl bg-white/60 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.06] edge-target">
+              <span class="text-emerald-600 dark:text-emerald-400 font-semibold block mb-1">UART Playbook</span>
+              <span class="text-slate-500 dark:text-slate-400">DMA 接收环形缓冲、波特率校验、断帧检测</span>
+            </div>
+            <div class="p-3 rounded-xl bg-white/60 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.06] edge-target">
+              <span class="text-purple-600 dark:text-purple-400 font-semibold block mb-1">SPI / I2C Playbook</span>
+              <span class="text-slate-500 dark:text-slate-400">JEDEC ID 读取校验、ACK应答探测、时序容限</span>
+            </div>
+            <div class="p-3 rounded-xl bg-white/60 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.06] edge-target">
+              <span class="text-amber-600 dark:text-amber-400 font-semibold block mb-1">ADC / PWM Playbook</span>
+              <span class="text-slate-500 dark:text-slate-400">基准电压校准、多通道扫描、占空比实测</span>
+            </div>
+          </div>
+        </div>
+        <div class="lg:col-span-6">
+          <div class="glass-panel rounded-2xl p-6 shadow-xl font-mono text-xs overflow-x-auto bg-slate-900 text-slate-200 dark:bg-[#0d1017] edge-target">
+            <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-700 dark:border-white/[0.08] text-slate-400">
+              <span class="text-emerald-400 font-semibold">verification_report.json</span>
+              <span class="text-[10px] bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded">FINAL: VERIFIED</span>
+            </div>
+            <pre class="leading-5"><code>{
+  <span class="text-purple-400">"status"</span>: <span class="text-emerald-300">"VERIFIED"</span>,
+  <span class="text-purple-400">"exit_code"</span>: <span class="text-amber-300">0</span>,
+  <span class="text-purple-400">"stages"</span>: {
+    <span class="text-sky-400">"build"</span>: {
+      <span class="text-purple-400">"command"</span>: <span class="text-slate-300">"scons -j8"</span>,
+      <span class="text-purple-400">"status"</span>: <span class="text-emerald-400">"PASS"</span>,
+      <span class="text-purple-400">"duration_ms"</span>: <span class="text-amber-300">3210</span>
+    },
+    <span class="text-sky-400">"flash"</span>: {
+      <span class="text-purple-400">"command"</span>: <span class="text-slate-300">"JLinkExe -CommandFile flash.jlink"</span>,
+      <span class="text-purple-400">"status"</span>: <span class="text-emerald-400">"PASS"</span>
+    },
+    <span class="text-sky-400">"test"</span>: {
+      <span class="text-purple-400">"command"</span>: <span class="text-slate-300">"python tools/rtt_can_test.py --device can0"</span>,
+      <span class="text-purple-400">"status"</span>: <span class="text-emerald-400">"PASS"</span>,
+      <span class="text-purple-400">"passed_assertions"</span>: <span class="text-amber-300">8</span>
+    }
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Interactive Generative UI / Playground Section -->
+  <section id="playground" class="relative z-10 py-24 border-t border-slate-200/60 dark:border-white/[0.06] bg-gradient-to-b from-slate-100/70 to-slate-200/40 dark:from-[#0a0c12] dark:to-[#08090c]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="reveal text-center max-w-3xl mx-auto mb-14">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs text-blue-600 dark:text-sky-400 font-mono mb-3 font-semibold">
+          <span class="w-2 h-2 rounded-full bg-blue-500 dark:bg-sky-400 animate-pulse"></span>
+          LIVE SIMULATOR & PLAYGROUND
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-4">
+          DriveForge 在线仿真控制台
+        </h2>
+        <p class="text-slate-600 dark:text-slate-400 text-sm sm:text-base">
+          无需安装本地工具链，即刻在浏览器中体验 DriveForge 智能体的需求解析、硬件事实校验与端到端自动化验证流。
+        </p>
+      </div>
+
+      <!-- Playground Card Container -->
+      <div class="reveal glass-panel rounded-2xl border border-slate-200 dark:border-white/[0.12] shadow-2xl overflow-hidden">
+        
+        <!-- Interactive Controls Bar -->
+        <div class="p-6 bg-slate-100/80 dark:bg-[#0d1017] border-b border-slate-200 dark:border-white/[0.08] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <div>
+            <label class="block text-xs font-mono text-slate-600 dark:text-slate-400 mb-2 font-semibold">1. 目标芯片 (MCU)</label>
+            <select id="mcu-select" onchange="updatePreset()" class="w-full bg-white dark:bg-[#141824] border border-slate-300 dark:border-white/[0.1] rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-sky-500 font-mono shadow-sm edge-target">
+              <option value="GD32F470ZIT6">GD32F470ZIT6 (Cortex-M4)</option>
+              <option value="STM32F407VGT6">STM32F407VGT6 (Cortex-M4)</option>
+              <option value="GD32F450ZGT6">GD32F450ZGT6 (Cortex-M4)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-mono text-slate-600 dark:text-slate-400 mb-2 font-semibold">2. 外设类型与实例</label>
+            <select id="periph-select" onchange="updatePreset()" class="w-full bg-white dark:bg-[#141824] border border-slate-300 dark:border-white/[0.1] rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-sky-500 font-mono shadow-sm edge-target">
+              <option value="CAN0">CAN0 (控制器局域网)</option>
+              <option value="UART1">UART1 (通用串口/接收TX-RX)</option>
+              <option value="SPI2">SPI2 (串行外设接口/Flash)</option>
+              <option value="I2C1">I2C1 (双线总线/EEPROM)</option>
+              <option value="ADC0">ADC0 (多通道模数转换)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-mono text-slate-600 dark:text-slate-400 mb-2 font-semibold">3. 引脚与证据来源</label>
+            <input type="text" id="pin-input" value="PD0 (RX), PD1 (TX)" class="w-full bg-white dark:bg-[#141824] border border-slate-300 dark:border-white/[0.1] rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-200 font-mono focus:outline-none focus:border-blue-500 dark:focus:border-sky-500 shadow-sm edge-target">
+          </div>
+
+          <div class="flex items-end">
+            <button id="run-btn" onclick="runSimulation()" class="w-full h-[42px] rounded-xl font-semibold text-xs text-white bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 shadow-glow-blue flex items-center justify-center gap-2 edge-target pressable" aria-live="polite">
+              <svg id="run-icon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span id="run-text">运行智能体全流程</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Simulation Progress Indicator -->
+        <div class="px-6 py-4 bg-slate-50 dark:bg-[#0a0c13] border-b border-slate-200 dark:border-white/[0.06] flex items-center justify-between text-xs font-mono overflow-x-auto">
+          <div class="flex items-center gap-6 shrink-0">
+            <div id="step-1-pill" class="flex items-center gap-2 text-blue-600 dark:text-sky-400">
+              <span class="w-2 h-2 rounded-full bg-blue-500 dark:bg-sky-400 animate-pulse"></span>
+              <span>01. 扫描与意图</span>
+            </div>
+            <div class="text-slate-400 dark:text-slate-600">→</div>
+            <div id="step-2-pill" class="flex items-center gap-2 text-slate-400 dark:text-slate-500">
+              <span class="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-600"></span>
+              <span>02. 事实门禁 (Gating)</span>
+            </div>
+            <div class="text-slate-400 dark:text-slate-600">→</div>
+            <div id="step-3-pill" class="flex items-center gap-2 text-slate-400 dark:text-slate-500">
+              <span class="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-600"></span>
+              <span>03. 复用规划 (Planner)</span>
+            </div>
+            <div class="text-slate-400 dark:text-slate-600">→</div>
+            <div id="step-4-pill" class="flex items-center gap-2 text-slate-400 dark:text-slate-500">
+              <span class="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-600"></span>
+              <span>04. 构建与实测 (Build/Test)</span>
+            </div>
+          </div>
+          <div id="sim-status-badge" class="shrink-0 ml-4 px-2.5 py-1 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-white/[0.08] text-[11px] font-semibold" aria-live="polite">
+            READY
+          </div>
+        </div>
+
+        <!-- Tab Switcher for Outputs -->
+        <div class="bg-slate-100 dark:bg-[#11141f] px-6 border-b border-slate-200 dark:border-white/[0.08] flex gap-2 overflow-x-auto" role="tablist" aria-label="仿真输出">
+          <button onclick="switchTab('tab-terminal')" id="tab-btn-terminal" class="px-4 py-3 text-xs font-mono font-medium border-b-2 border-blue-600 dark:border-sky-400 text-blue-600 dark:text-sky-300 flex items-center gap-2 edge-target whitespace-nowrap" role="tab" aria-selected="true" aria-controls="tab-terminal">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+            实时终端 (CLI Stream)
+          </button>
+          <button onclick="switchTab('tab-manifest')" id="tab-btn-manifest" class="px-4 py-3 text-xs font-mono font-medium border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-2 edge-target whitespace-nowrap" role="tab" aria-selected="false" aria-controls="tab-manifest">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            硬件事实清单 (Manifest)
+          </button>
+          <button onclick="switchTab('tab-plan')" id="tab-btn-plan" class="px-4 py-3 text-xs font-mono font-medium border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-2 edge-target whitespace-nowrap" role="tab" aria-selected="false" aria-controls="tab-plan">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            驱动复用方案 (Plan)
+          </button>
+          <button onclick="switchTab('tab-report')" id="tab-btn-report" class="px-4 py-3 text-xs font-mono font-medium border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-2 edge-target whitespace-nowrap" role="tab" aria-selected="false" aria-controls="tab-report">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            验证报告 (Report)
+          </button>
+        </div>
+
+        <!-- Tab Contents -->
+        <div class="p-6 bg-slate-950 text-slate-200 dark:bg-[#080a0f] min-h-[340px] font-mono text-xs overflow-x-auto">
+          
+          <!-- Terminal View -->
+          <div id="tab-terminal" class="space-y-1.5 tab-panel" role="tabpanel" aria-labelledby="tab-btn-terminal">
+            <div class="text-slate-400">// 点击上方「运行智能体全流程」观察执行过程</div>
+            <div id="terminal-content" class="leading-relaxed text-slate-300">
+              <span class="text-sky-400 font-semibold">$ driveforge --version</span><br>
+              DriveForge 0.1.0 (RT-Thread 5.x Autonomous Driver Agent)<br>
+              Ready to scan target workspace and verify hardware facts.
+            </div>
+          </div>
+
+          <!-- Manifest View -->
+          <div id="tab-manifest" class="hidden tab-panel" role="tabpanel" aria-labelledby="tab-btn-manifest">
+            <pre id="manifest-content" class="text-slate-300 leading-relaxed"></pre>
+          </div>
+
+          <!-- Plan View -->
+          <div id="tab-plan" class="hidden tab-panel" role="tabpanel" aria-labelledby="tab-btn-plan">
+            <pre id="plan-content" class="text-slate-300 leading-relaxed"></pre>
+          </div>
+
+          <!-- Report View -->
+          <div id="tab-report" class="hidden tab-panel" role="tabpanel" aria-labelledby="tab-btn-report">
+            <pre id="report-content" class="text-slate-300 leading-relaxed"></pre>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CLI & Quickstart Guide -->
+  <section id="quickstart" class="relative z-10 py-24 border-t border-slate-200/60 dark:border-white/[0.06]">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="reveal text-center max-w-3xl mx-auto mb-14">
+        <span class="text-xs font-mono uppercase tracking-widest text-blue-600 dark:text-sky-400 mb-2 block font-semibold">Developer Quickstart</span>
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-4">
+          三步接入真实工程流水线
+        </h2>
+        <p class="text-slate-600 dark:text-slate-400 text-sm sm:text-base">
+          Python 3.10+ 原生无额外第三方依赖，可直接作为独立 CLI 运行，或与 Antigravity / Codex 插件深度整合。
+        </p>
+      </div>
+
+      <div class="space-y-8">
+        
+        <!-- Step 1 -->
+        <div class="reveal glass-panel rounded-2xl p-6 edge-target">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-full bg-blue-500/15 dark:bg-blue-500/20 text-blue-600 dark:text-sky-400 border border-blue-500/30 flex items-center justify-center font-bold text-xs">1</span>
+              <h4 class="text-base font-semibold text-slate-900 dark:text-white">安装或直接使用源码</h4>
+            </div>
+            <button onclick="copyCommand('python -m pip install -e .')" class="text-xs font-mono text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-sky-400 flex items-center gap-1 font-semibold edge-target">
+              复制
+            </button>
+          </div>
+          <div class="bg-slate-900 text-slate-200 dark:bg-[#090b10] rounded-xl p-4 font-mono text-xs border border-slate-800 dark:border-white/[0.06]">
+            <span class="text-slate-500"># 克隆并以可编辑模式安装</span><br>
+            git clone https://github.com/Luyuan3014/DriveForge.git<br>
+            cd DriveForge<br>
+            python -m pip install -e .
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="reveal glass-panel rounded-2xl p-6 edge-target">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-full bg-blue-500/15 dark:bg-blue-500/20 text-blue-600 dark:text-sky-400 border border-blue-500/30 flex items-center justify-center font-bold text-xs">2</span>
+              <h4 class="text-base font-semibold text-slate-900 dark:text-white">执行规划（生成 Manifest 与 Driver Plan）</h4>
+            </div>
+            <button onclick="copyCommand('driveforge plan ./my-bsp --request &quot;给这个项目增加 CAN0 驱动&quot; --mcu GD32F470ZIT6 --rx-pin PD0 --tx-pin PD1')" class="text-xs font-mono text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-sky-400 flex items-center gap-1 font-semibold edge-target">
+              复制
+            </button>
+          </div>
+          <div class="bg-slate-900 text-slate-200 dark:bg-[#090b10] rounded-xl p-4 font-mono text-xs border border-slate-800 dark:border-white/[0.06]">
+            <span class="text-slate-500"># 智能分析目标工程，校验硬件事实门禁，输出复用方案</span><br>
+            driveforge plan C:\path\to\rtthread-project \<br>
+            &nbsp;&nbsp;--request "给这个项目增加 CAN0 驱动" \<br>
+            &nbsp;&nbsp;--mcu GD32F470ZIT6 \<br>
+            &nbsp;&nbsp;--rx-pin PD0 --tx-pin PD1 \<br>
+            &nbsp;&nbsp;--clock-gate RCU_CAN0
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="reveal glass-panel rounded-2xl p-6 edge-target">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-full bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-xs">3</span>
+              <h4 class="text-base font-semibold text-slate-900 dark:text-white">执行构建、烧录与硬件测试</h4>
+            </div>
+            <button onclick="copyCommand('driveforge run ./my-bsp --config driveforge.json --execute-build --execute-flash --execute-test')" class="text-xs font-mono text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-sky-400 flex items-center gap-1 font-semibold edge-target">
+              复制
+            </button>
+          </div>
+          <div class="bg-slate-900 text-slate-200 dark:bg-[#090b10] rounded-xl p-4 font-mono text-xs border border-slate-800 dark:border-white/[0.06]">
+            <span class="text-slate-500"># 显式授权各阶段，生成最终 verification_report.yaml</span><br>
+            driveforge run C:\path\to\rtthread-project \<br>
+            &nbsp;&nbsp;--config driveforge.json \<br>
+            &nbsp;&nbsp;--execute-build \<br>
+            &nbsp;&nbsp;--execute-flash \<br>
+            &nbsp;&nbsp;--execute-test
+          </div>
+        </div>
+
+      </div>
+
+      <!-- State Machine Explanation Cards -->
+      <div class="reveal mt-16 pt-10 border-t border-slate-200/60 dark:border-white/[0.08]">
+        <h3 class="text-center text-sm font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-6 font-semibold">工作流最终状态定义 (State Machine)</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-center font-mono text-xs">
+          <div class="p-3 rounded-xl bg-white/70 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.06] shadow-sm edge-target">
+            <span class="text-blue-600 dark:text-sky-400 font-bold block mb-1">PLANNED</span>
+            <span class="text-[11px] text-slate-500 dark:text-slate-400">已完成分析规划，未执行验证</span>
+          </div>
+          <div class="p-3 rounded-xl bg-white/70 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.06] shadow-sm edge-target">
+            <span class="text-cyan-600 dark:text-cyan-400 font-bold block mb-1">BUILD_PASS</span>
+            <span class="text-[11px] text-slate-500 dark:text-slate-400">编译构建通过，未证明硬件行为</span>
+          </div>
+          <div class="p-3 rounded-xl bg-white/70 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.06] shadow-sm edge-target">
+            <span class="text-indigo-600 dark:text-indigo-400 font-bold block mb-1">FLASH_PASS</span>
+            <span class="text-[11px] text-slate-500 dark:text-slate-400">固件已成功烧录，未完成测试</span>
+          </div>
+          <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-500/30 shadow-sm edge-target">
+            <span class="text-emerald-600 dark:text-emerald-400 font-bold block mb-1">VERIFIED</span>
+            <span class="text-[11px] text-emerald-600 dark:text-emerald-300">硬件测试命令通过</span>
+          </div>
+          <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-500/5 border border-amber-500/30 shadow-sm edge-target">
+            <span class="text-amber-600 dark:text-amber-400 font-bold block mb-1">BLOCKED</span>
+            <span class="text-[11px] text-amber-600 dark:text-amber-300">关键事实缺失，安全暂停</span>
+          </div>
+          <div class="p-3 rounded-xl bg-rose-50 dark:bg-rose-500/5 border border-rose-500/30 shadow-sm edge-target">
+            <span class="text-rose-600 dark:text-rose-400 font-bold block mb-1">FAIL</span>
+            <span class="text-[11px] text-rose-600 dark:text-rose-300">已执行的某个阶段失败</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Compatibility Matrix -->
+  <section id="matrix" class="relative z-10 py-24 border-t border-slate-200/60 dark:border-white/[0.06] bg-slate-100/40 dark:bg-[#0b0d14]">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="reveal text-center max-w-3xl mx-auto mb-14">
+        <span class="text-xs font-mono uppercase tracking-widest text-blue-600 dark:text-sky-400 mb-2 block font-semibold">Support Matrix</span>
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-4">
+          DriveForge MVP 生态支持矩阵
+        </h2>
+        <p class="text-slate-600 dark:text-slate-400 text-sm">
+          聚焦核心主流生态，深耕工业级可信度，优先打磨高可靠性外设驱动路径。
+        </p>
+      </div>
+
+      <div class="reveal glass-panel rounded-2xl border border-slate-200 dark:border-white/[0.08] overflow-hidden shadow-lg">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-slate-100 dark:bg-[#121622] text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-white/[0.08]">
+              <tr>
+                <th class="py-4 px-6 font-semibold">维度</th>
+                <th class="py-4 px-6 font-semibold">MVP 范围</th>
+                <th class="py-4 px-6 font-semibold">代表型号 / 协议 / 工具</th>
+                <th class="py-4 px-6 font-semibold">状态</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 dark:divide-white/[0.06] text-slate-600 dark:text-slate-300">
+              <tr class="hover:bg-slate-50 dark:hover:bg-white/[0.02]">
+                <td class="py-4 px-6 text-blue-600 dark:text-sky-400 font-semibold">操作系统</td>
+                <td class="py-4 px-6">RT-Thread</td>
+                <td class="py-4 px-6 text-slate-500 dark:text-slate-400">优先支持 RT-Thread 5.x / 4.x</td>
+                <td class="py-4 px-6"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">已验证</span></td>
+              </tr>
+              <tr class="hover:bg-slate-50 dark:hover:bg-white/[0.02]">
+                <td class="py-4 px-6 text-blue-600 dark:text-sky-400 font-semibold">微控制器 (MCU)</td>
+                <td class="py-4 px-6">ARM Cortex-M4 架构</td>
+                <td class="py-4 px-6 text-slate-500 dark:text-slate-400">GD32F470、GD32F450、STM32F407 系列</td>
+                <td class="py-4 px-6"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">已验证</span></td>
+              </tr>
+              <tr class="hover:bg-slate-50 dark:hover:bg-white/[0.02]">
+                <td class="py-4 px-6 text-blue-600 dark:text-sky-400 font-semibold">目标外设</td>
+                <td class="py-4 px-6">7 大核心通用外设</td>
+                <td class="py-4 px-6 text-slate-500 dark:text-slate-400">GPIO、UART、SPI、I2C、CAN、ADC、PWM</td>
+                <td class="py-4 px-6"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">已验证</span></td>
+              </tr>
+              <tr class="hover:bg-slate-50 dark:hover:bg-white/[0.02]">
+                <td class="py-4 px-6 text-blue-600 dark:text-sky-400 font-semibold">构建系统</td>
+                <td class="py-4 px-6">SCons / Make / CMake</td>
+                <td class="py-4 px-6 text-slate-500 dark:text-slate-400">SCons 原生支持；兼容 west 与自定义命令</td>
+                <td class="py-4 px-6"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">已验证</span></td>
+              </tr>
+              <tr class="hover:bg-slate-50 dark:hover:bg-white/[0.02]">
+                <td class="py-4 px-6 text-blue-600 dark:text-sky-400 font-semibold">硬件调试探针</td>
+                <td class="py-4 px-6">J-Link / OpenOCD / pyOCD / ST-Link</td>
+                <td class="py-4 px-6 text-slate-500 dark:text-slate-400">通过显式命令执行烧录与复位控制</td>
+                <td class="py-4 px-6"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">已验证</span></td>
+              </tr>
+              <tr class="hover:bg-slate-50 dark:hover:bg-white/[0.02]">
+                <td class="py-4 px-6 text-blue-600 dark:text-sky-400 font-semibold">硬件测试回环</td>
+                <td class="py-4 px-6">SEGGER RTT / 物理串口</td>
+                <td class="py-4 px-6 text-slate-500 dark:text-slate-400">回环自收发、波特率断言、CRC 校验</td>
+                <td class="py-4 px-6"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-semibold">已验证</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Global Footer -->
+  <footer class="relative z-10 border-t border-slate-200/60 dark:border-white/[0.08] bg-slate-100/90 dark:bg-[#07080c] py-14">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+        
+        <div class="md:col-span-2 space-y-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold">
+              <svg class="w-4 h-4 text-sky-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+            </div>
+            <span class="text-lg font-bold text-slate-900 dark:text-white tracking-tight">DriveForge</span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
+            面向 RT-Thread 外设驱动的工程智能体。不凭记忆猜测，以证据驱动构建嵌入式软硬件可信闭环。
+          </p>
+          <div class="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
+            License: MIT Open Source · Powered by Antigravity Design Philosophy
+          </div>
+        </div>
+
+        <div>
+          <h5 class="text-xs font-semibold text-slate-800 dark:text-slate-300 uppercase tracking-wider mb-4 font-mono">核心文档</h5>
+          <ul class="space-y-2 text-xs text-slate-500 dark:text-slate-400">
+            <li><a href="../DriveForge-PRD.md" class="hover:text-blue-600 dark:hover:text-sky-400 transition-colors">产品需求文档 (PRD)</a></li>
+            <li><a href="../docs/architecture.md" class="hover:text-blue-600 dark:hover:text-sky-400 transition-colors">系统架构与模块职责</a></li>
+            <li><a href="../docs/configuration.md" class="hover:text-blue-600 dark:hover:text-sky-400 transition-colors">配置指南与事实门禁</a></li>
+            <li><a href="../docs/roadmap.md" class="hover:text-blue-600 dark:hover:text-sky-400 transition-colors">发展规划与演进路线</a></li>
+            <li><a href="../SKILL.md" class="hover:text-blue-600 dark:hover:text-sky-400 transition-colors">Codex / Agentic Skill 规范</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h5 class="text-xs font-semibold text-slate-800 dark:text-slate-300 uppercase tracking-wider mb-4 font-mono">开源与社区</h5>
+          <ul class="space-y-2 text-xs text-slate-500 dark:text-slate-400">
+            <li><a href="https://github.com/Luyuan3014/DriveForge" target="_blank" rel="noopener" class="hover:text-blue-600 dark:hover:text-sky-400 transition-colors">GitHub 仓库</a></li>
+            <li><a href="../CHANGELOG.md" class="hover:text-blue-600 dark:hover:text-sky-400 transition-colors">版本更新日志 (CHANGELOG)</a></li>
+            <li><a href="../CONTRIBUTING.md" class="hover:text-blue-600 dark:hover:text-sky-400 transition-colors">贡献指南</a></li>
+            <li><a href="https://antigravity.google/" target="_blank" rel="noopener" class="hover:text-blue-600 dark:hover:text-sky-400 transition-colors">Google Antigravity</a></li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="pt-8 border-t border-slate-200 dark:border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-500 font-mono">
+        <div>© 2026 DriveForge Project. Evidence-first autonomous engineering workflow.</div>
+        <div class="flex items-center gap-4">
+          <a href="#" class="hover:text-blue-600 dark:hover:text-slate-300 transition-colors">返回顶部 ↑</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div id="interaction-toast" class="fixed left-1/2 bottom-6 z-[10001] px-4 py-2.5 rounded-full bg-slate-900/90 dark:bg-white/95 text-white dark:text-slate-900 border border-white/10 dark:border-slate-200 shadow-2xl backdrop-blur-xl text-xs font-medium flex items-center gap-2" role="status" aria-live="polite">
+    <svg class="w-3.5 h-3.5 text-emerald-400 dark:text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+    <span id="interaction-toast-text">操作完成</span>
+  </div>
+
+  <button id="back-to-top" class="fixed right-5 bottom-5 z-40 w-11 h-11 rounded-full glass-panel text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-sky-300 shadow-lg flex items-center justify-center pressable" aria-label="返回页面顶部" title="返回顶部">
+    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+
+  <!-- Core Application Modules -->
+  <script src="./js/playground.js"></script>
+  <script src="./js/blackhole.js"></script>
+  <script src="./js/hero-orchestrator.js"></script>
+  <script src="./js/interactions.js"></script>
+  <script src="./js/main.js"></script>
+
+</body>
+</html>

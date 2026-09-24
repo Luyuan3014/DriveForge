@@ -8,6 +8,10 @@ DriveForge 的所有重要变更都记录在此文件中。格式参考 [Keep a 
 
 ### Added
 
+- 新增官方落地页与 Web 交互式仿真控制台（`website/`），提供 Antigravity 科技风格相对论黑洞视觉引擎与外设驱动仿真体验。
+- 增加基于 CDP 的 Headless 浏览器端到端测试套件（`tools/verify_website.py`）。
+- 提供生产级 Nginx 配置、容器化构建（`Dockerfile`、`docker-compose.yml`）及跨平台自动化部署脚本（`deploy.ps1`、`deploy.sh`）。
+
 ### Changed
 
 ### Fixed
