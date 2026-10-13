@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 
 class Confidence(str, Enum):

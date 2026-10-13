@@ -4,7 +4,22 @@ DriveForge 的所有重要变更都记录在此文件中。格式参考 [Keep a 
 
 开发中的变更必须先写入 `Unreleased`；发布时再移动到对应版本并补充日期。较大的更新还应在 `docs/updates/` 下增加完整记录。
 
-## [Unreleased]
+## [0.2.0] - 2026-10-13
+
+### Added
+
+- 增加标准库实现的 CMSIS-SVD 解析器（`driveforge.svd`），输出外设基地址、寄存器、位域和 IRQ 的确定性事实索引。
+- 增加带条件编译分支处理的 C 语义扫描器（`driveforge.c_analysis`），识别活动宏和指定成员初始化。
+- 增加 CAN、UART、SPI 时序求解器（`driveforge.timing`），返回分频参数、采样点、实际速率和误差。
+- 增加锚点唯一匹配的 Adapt-First 补丁引擎（`driveforge.patcher`）和 `driveforge patch`，生成可审查的 unified Git diff。
+- 增加硬件轮询超时扫描与 Guard 模板（`driveforge.defensive`）。
+
+### Changed
+
+- 工程扫描结果现在包含语义扫描摘要；可选 SVD 会随 `.driveforge` 状态和 Manifest 留存。
+- 版本升级到 0.2.0，阶段一产物继续使用零运行时第三方依赖。
+
+## [0.1.1] - 2026-09-24
 
 ### Added
 
@@ -42,5 +57,6 @@ DriveForge 的所有重要变更都记录在此文件中。格式参考 [Keep a 
 
 详细说明见 [`docs/updates/2026-09-10-mvp.md`](docs/updates/2026-09-10-mvp.md)。
 
-[Unreleased]: https://github.com/Luyuan3014/DriveForge/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Luyuan3014/DriveForge/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Luyuan3014/DriveForge/tree/v0.2.0
 [0.1.0]: https://github.com/Luyuan3014/DriveForge/tree/v0.1.0

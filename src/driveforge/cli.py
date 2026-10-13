@@ -40,7 +40,7 @@ def _build_parser() -> argparse.ArgumentParser:
         prog="driveforge",
         description="Evidence-first RT-Thread driver engineering workflow",
     )
-    parser.add_argument("--version", action="version", version="DriveForge 0.1.0")
+    parser.add_argument("--version", action="version", version="DriveForge 0.2.0")
     subparsers = parser.add_subparsers(dest="command", required=True)
     for name, help_text in (
         ("scan", "Analyze a target project and produce a hardware manifest."),

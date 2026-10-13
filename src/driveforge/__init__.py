@@ -1,4 +1,4 @@
-"""DriveForge MVP package."""
+"""DriveForge deterministic fact and code-loop package."""
 
 from .models import __version__
 
