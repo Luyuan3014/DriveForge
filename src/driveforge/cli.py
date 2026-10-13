@@ -11,10 +11,13 @@ from .analyzer import ProjectAnalyzer
 from .config import hardware_overrides, load_config, set_dotted
 from .intent import parse_request
 from .planner import build_plan
+from .patcher import AdaptFirstPatcher, operations_from_config
 from .resolver import build_manifest, merge_facts, validate_facts
 from .runner import WorkflowRunner, build_report
 from .utils import load_json, project_snapshot, utc_now, write_json, write_yaml
 from .viewer import generate_report_page
+from .svd import parse_svd
+from .models import Confidence, Evidence, Fact
 
 
 def _coerce(value: str) -> Any:
@@ -43,6 +46,7 @@ def _build_parser() -> argparse.ArgumentParser:
         ("scan", "Analyze a target project and produce a hardware manifest."),
         ("plan", "Analyze facts and produce an adaptation-first driver plan."),
         ("run", "Plan and optionally execute configured workflow gates."),
+        ("patch", "Generate a deterministic Adapt-First Git diff from configured anchors."),
     ):
         child = subparsers.add_parser(name, help=help_text)
         child.add_argument("project", type=Path, help="RT-Thread project directory")
@@ -65,6 +69,9 @@ def _build_parser() -> argparse.ArgumentParser:
         child.add_argument("--clock-gate", help="Verified SDK clock gate symbol")
         child.add_argument("--clock-frequency", type=int, help="Verified peripheral clock frequency in Hz")
         child.add_argument("--irq", help="Verified IRQ symbol")
+        child.add_argument("--svd", help="CMSIS-SVD file used as a deterministic hardware source")
+    patch = subparsers.choices["patch"]
+    patch.add_argument("--apply-patch", action="store_true", help="Apply the configured anchors after a clean preview")
     run = subparsers.choices["run"]
     run.add_argument("--execute-patch", action="store_true", help="Run commands.patch from the config")
     run.add_argument("--execute-build", action="store_true", help="Run the configured/detected build")
@@ -93,6 +100,7 @@ def _apply_cli_config(config: dict[str, Any], args: argparse.Namespace) -> None:
         "clock_gate": "hardware.clock.gate",
         "clock_frequency": "hardware.clock.frequency",
         "irq": "hardware.interrupt.irq",
+        "svd": "hardware.svd.path",
     }
     for attr, key in mappings.items():
         value = getattr(args, attr, None)
@@ -120,7 +128,21 @@ def _prepare(args: argparse.Namespace) -> tuple[Path, Path, dict[str, Any], dict
         intent.instance = str(overrides["target.instance"]).upper()
 
     scan = ProjectAnalyzer(project, intent).analyze()
+    svd_path = overrides.get("svd.path")
+    svd_device = None
+    if svd_path:
+        candidate = Path(str(svd_path))
+        if not candidate.is_absolute():
+            candidate = project / candidate
+        if not candidate.is_file():
+            raise ValueError(f"CMSIS-SVD file does not exist: {candidate}")
+        svd_device = parse_svd(candidate)
+        scan.semantic["svd"] = {"path": str(candidate), "device": svd_device.name, "facts": svd_device.fact_index()}
     facts = merge_facts(scan, intent, overrides)
+    if svd_device is not None:
+        svd_facts = svd_device.fact_index()
+        for key, value in svd_facts.items():
+            facts[key] = Fact(key, value, Confidence.VERIFIED, "cmsis-svd", [Evidence(path=str(svd_path))])
     blockers, fact_warnings = validate_facts(facts)
     warnings = [*scan.warnings, *fact_warnings]
     manifest = build_manifest(project, request, facts, blockers, warnings)
@@ -134,7 +156,9 @@ def _prepare(args: argparse.Namespace) -> tuple[Path, Path, dict[str, Any], dict
         scan.inventory,
     )
     output = args.output.resolve() if args.output else project / ".driveforge"
-    return project, output, config, {"scan": scan, "facts": facts, "blockers": blockers}, manifest, plan
+    if svd_device is not None:
+        manifest["svd"] = {"path": str(svd_path), "device": svd_device.name, "peripherals": len(svd_device.peripherals)}
+    return project, output, config, {"scan": scan, "facts": facts, "blockers": blockers, "svd": svd_device}, manifest, plan
 
 
 def _write_base_artifacts(output: Path, manifest: dict[str, Any], plan: dict[str, Any] | None) -> None:
@@ -194,6 +218,22 @@ def main(argv: list[str] | None = None) -> int:
             )
             _print_summary(output, manifest, plan)
             return 2 if context["blockers"] else 0
+
+        if args.command == "patch":
+            if context["blockers"]:
+                _print_summary(output, manifest, plan)
+                return 2
+            operations = operations_from_config(config)
+            if not operations:
+                raise ValueError("No patch.operations configured; every replacement must use an explicit anchor")
+            patch_path = output / "driver.patch"
+            patcher = AdaptFirstPatcher(project)
+            result = patcher.apply(operations, patch_file=patch_path) if args.apply_patch else patcher.preview(operations)
+            patch_path.write_text(result.diff, encoding="utf-8")
+            write_json(output / "patch_result.json", result.to_dict())
+            payload = {"status": "PATCH_APPLIED" if result.applied else ("PATCH_READY" if not result.errors else "BLOCKED"), "patch": str(patch_path), "files": result.files, "errors": result.errors}
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+            return 2 if result.errors else 0
 
         if context["blockers"]:
             report = build_report(

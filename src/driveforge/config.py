@@ -10,6 +10,7 @@ from .utils import flatten_dict, load_json
 DEFAULT_CONFIG: dict[str, Any] = {
     "request": "",
     "hardware": {},
+    "patch": {"operations": []},
     "commands": {
         "patch": None,
         "build": None,
