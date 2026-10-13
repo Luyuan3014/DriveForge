@@ -1,6 +1,6 @@
-# DriveForge MVP 架构
+# DriveForge 架构（0.2 阶段一）
 
-本文描述 `0.1.x` 的已实现架构。产品长期愿景和完整需求以 [`DriveForge-PRD.md`](../DriveForge-PRD.md) 为准；本文只记录当前代码能够完成的事情。
+本文描述 `0.2.x` 阶段一的已实现架构。产品长期愿景和完整需求以 [`DriveForge-PRD.md`](../DriveForge-PRD.md) 为准；本文只记录当前代码能够完成的事情。
 
 ## 设计目标
 
@@ -40,7 +40,12 @@ CLI 负责确定性扫描、门禁、规划、命令执行和报告；根目录�
 | --- | --- |
 | `src/driveforge/cli.py` | 参数解析、配置合并、产物写入和退出码 |
 | `src/driveforge/intent.py` | 从中英文需求中识别外设、实例和操作类型 |
-| `src/driveforge/analyzer.py` | 扫描 RT-Thread、MCU、构建工具、探针、驱动候选和工程拓扑 |
+| `src/driveforge/analyzer.py` | 扫描 RT-Thread、MCU、构建工具、探针、驱动候选、工程拓扑和语义摘要 |
+| `src/driveforge/svd.py` | 解析 CMSIS-SVD，提供外设、寄存器、位域和 IRQ 模型 |
+| `src/driveforge/c_analysis.py` | 解析活动条件编译分支、宏和指定成员初始化 |
+| `src/driveforge/timing.py` | CAN、UART、SPI 的确定性时序求解 |
+| `src/driveforge/patcher.py` | 基于唯一锚点生成/应用 Adapt-First unified diff |
+| `src/driveforge/defensive.py` | 检测无界硬件轮询并生成超时 Guard 模板 |
 | `src/driveforge/resolver.py` | 合并项目事实与用户事实，规范化值并执行关键事实门禁 |
 | `src/driveforge/planner.py` | 选择参考实例，生成最小改动导向的 Driver Plan |
 | `src/driveforge/runner.py` | 执行 patch/build/flash/test/repair 命令，保存日志并计算最终状态 |
@@ -61,6 +66,7 @@ CLI 负责确定性扫描、门禁、规划、命令执行和报告；根目录�
 - SCons、CMake、Make、west 和 ARM 编译器；
 - J-Link、ST-Link、pyOCD 线索；
 - 同类外设实例和驱动文件；
+- C/C++ 文件的活动宏分支与指定成员初始化摘要；关闭的 `#if` 分支不会进入语义摘要。
 - BSP、厂商 SDK、HAL、启动文件、链接脚本、驱动目录、板级配置、Kconfig、SCons、CMake 和 DeviceTree 文件。
 
 扫描结果只是事实候选。用户通过配置提供的值优先级更高，并被标记为 `user_config`，不会与扫描证据混淆。
@@ -94,7 +100,15 @@ evidence:
 
 Planner 根据候选文件来源和匹配度进行排序。项目内实现优先于 RTOS BSP，RTOS BSP 优先于厂商 SDK。若存在不同实例，例如目标是 `CAN0` 而项目已有 `CAN1`，计划采用 `adapt_existing_instance`；否则依次进入扩展已有驱动或基于已验证 SDK 证据的新实现策略。
 
-Planner 只产生策略与验收条件，不对厂商代码进行全局字符串替换。具体补丁由 Codex Skill 或显式 `commands.patch` 完成。
+Planner 只产生策略与验收条件，不对厂商代码进行全局字符串替换。阶段一增加 `driveforge patch`：补丁配置必须声明文件、唯一旧文本和新文本；预览阶段会生成 `.driveforge/driver.patch`，锚点缺失或多次命中时保持源文件不变。外部 `commands.patch` 仍可用于复杂工程修改。
+
+## 阶段一确定性引擎
+
+- `parse_svd(path)` 将 CMSIS-SVD 转换为 `SVDDevice`，寄存器地址由 `base_address + address_offset` 明确计算，位域提供掩码。
+- `solve_can_bittiming(clock_hz, bitrate)` 遍历整数 Prescaler/BS1/BS2，在 80%~87.5% 采样点窗口内优先选择零误差解。
+- `solve_uart_baudrate` 和 `solve_spi_clock` 分别返回过采样分频和不超过器件上限的最快 SPI 分频。
+- `CSourceAnalyzer` 使用依赖无关的预处理分支模型；后续接入 tree-sitter 只需替换后端，不改变 `CSourceModel` 消费接口。
+- `find_unbounded_waits` 为状态/就绪/收发标志的无界 `while` 提供审查发现，`add_timeout_guard` 生成带预算的退出模板。
 
 ## 执行与修复
 
@@ -119,7 +133,7 @@ YAML 产物便于人工审查，JSON 产物便于后续工具消费。核心实�
 
 ## 当前边界
 
-- CLI 本身不包含大模型 API；需要工程判断的补丁由 Codex Skill 或外部命令完成。
+- CLI 本身不包含大模型 API；复杂工程判断仍由 Codex Skill 或外部命令完成，阶段一的显式锚点补丁可独立运行。
 - 当前没有内置 J-Link/OpenOCD 参数生成器，探针命令由项目配置提供。
 - 没有真实开发板时，只能验证工作流，不能声称目标驱动 `VERIFIED`。
 - Linux、Zephyr、FreeRTOS、复杂高速外设和非 Cortex-M 平台不属于当前 MVP。

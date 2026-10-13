@@ -4,7 +4,7 @@
 
 DriveForge 是一个面向嵌入式驱动开发的工程智能体。它把项目分析、硬件事实解析、驱动复用规划、代码工程、构建、烧录、硬件测试、诊断与修复组织成一条可审查、可追踪的工作流。
 
-当前仓库提供 DriveForge MVP。它的目标不是支持尽可能多的芯片，而是先可靠跑通：
+当前仓库提供 DriveForge 0.2.0。阶段一在 MVP 的证据门禁上增加确定性芯片事实、语义扫描、时序求解和可审查补丁闭环。它的目标不是支持尽可能多的芯片，而是先可靠跑通：
 
 ```text
 需求 → 工程扫描 → 硬件事实清单 → 复用策略 → 实现 → 构建 → 烧录 → 测试 → 报告
@@ -19,7 +19,8 @@ DriveForge 是一个面向嵌入式驱动开发的工程智能体。它把项目
 | 外设 | GPIO、UART、SPI、I2C、CAN、ADC、PWM |
 | 构建 | SCons 优先；可识别 Make、west，支持配置自定义命令 |
 | 调试与测试 | 通过显式命令接入 J-Link、OpenOCD、pyOCD、ST-Link、串口或 RTT |
-| 输出 | Hardware Manifest、Driver Plan、执行日志、Verification Report |
+| 输出 | Hardware Manifest、Driver Plan、执行日志、Verification Report、可审查 unified Git diff |
+| 阶段一引擎 | CMSIS-SVD、条件编译语义摘要、CAN/UART/SPI 时序求解、锚点补丁和轮询 Guard 检查 |
 
 DriveForge 不会凭模型记忆猜测引脚、PinMux、时钟、IRQ、DMA、寄存器、地址或外设实例。关键事实无法追溯到用户输入、当前工程、板级配置、CMSIS 或厂商 SDK 时，流程会进入 `BLOCKED` 并指出缺少的事实。
 
@@ -60,6 +61,35 @@ driveforge plan C:\path\to\rtthread-project `
 - `logs/`：每次命令执行的原始输出。
 
 完整配置示例见 [`examples/gd32f470-can0.json`](examples/gd32f470-can0.json)。
+
+## 阶段一：确定性事实与代码闭环
+
+可以把 CMSIS-SVD 作为额外证据源加入规划。解析结果包含设备名、外设基地址、寄存器偏移、位域掩码和 IRQ，并保存在 `.driveforge` 状态中：
+
+```powershell
+driveforge plan C:\path	o
+tthread-project `
+  --request "增加 CAN0 驱动" `
+  --svd C:\vendor\GD32F470.svd
+```
+
+需要生成代码差异时，在 `driveforge.json` 声明显式替换锚点：
+
+```json
+{
+  "patch": {
+    "operations": [
+      {
+        "path": "drv_can.c",
+        "required": ["can_deinit(CAN1);"],
+        "replacements": {"can_deinit(CAN1);": "can_deinit(CAN0);"}
+      }
+    ]
+  }
+}
+```
+
+运行 `driveforge patch . --request "增加 CAN0 驱动" --config driveforge.json` 会生成 `.driveforge/driver.patch` 和 `patch_result.json`。每个旧文本必须唯一命中；预览默认不改源文件，使用 `--apply-patch` 才写入。`driveforge.timing` 提供 CAN、UART 和 SPI 求解 API，`driveforge.defensive` 可审查无界硬件轮询。
 
 ## 执行构建、烧录与测试
 
@@ -109,6 +139,7 @@ driveforge view C:\path\to\rtthread-project
 | 文档 | 内容 |
 | --- | --- |
 | [`DriveForge-PRD.md`](DriveForge-PRD.md) | 产品定位、MVP 范围和长期愿景 |
+| [`docs/evolution-blueprint.md`](docs/evolution-blueprint.md) | **演进蓝图与现代化驱动工程规范设计指南** |
 | [`website/`](website/README.md) | 官方落地页与 Web 交互式仿真控制台 |
 | [`docs/architecture.md`](docs/architecture.md) | 系统边界、模块职责、数据流与安全不变量 |
 | [`docs/configuration.md`](docs/configuration.md) | 配置文件、CLI 参数、事实优先级和命令环境 |
@@ -129,7 +160,7 @@ python -m unittest discover -s tests -v
 
 ## 项目状态
 
-DriveForge 目前处于 `0.1.0` MVP 阶段。软件工作流已经可运行；真实板卡上的 `VERIFIED` 仍取决于目标工程、调试器、测试设备和配置命令。详细限制和下一阶段计划见 [`docs/roadmap.md`](docs/roadmap.md)。
+DriveForge 当前处于 `0.2.0` 阶段一。软件工作流已经可运行；真实板卡上的 `VERIFIED` 仍取决于目标工程、调试器、测试设备和配置命令。详细限制和下一阶段计划见 [`docs/roadmap.md`](docs/roadmap.md)。
 
 ## License
 

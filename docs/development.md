@@ -25,6 +25,11 @@ driveforge --version
 ```text
 DriveForge/
 ├── src/driveforge/       Python 核心
+│   ├── svd.py            CMSIS-SVD 事实模型
+│   ├── c_analysis.py     活动条件分支和结构体初始化扫描
+│   ├── timing.py         CAN/UART/SPI 时序求解
+│   ├── patcher.py        唯一锚点 unified diff
+│   └── defensive.py      硬件轮询 Guard 审查
 ├── tools/                源码仓库入口
 ├── schemas/              JSON Schema
 ├── playbooks/            外设测试准则
@@ -50,6 +55,13 @@ python tools/driveforge.py --version
 ```
 
 `compileall` 会产生 `__pycache__`，已被 `.gitignore` 忽略。
+
+
+## 阶段一引擎约束
+
+SVD、时序和补丁模块必须保持纯函数或显式输入输出：不能联网补全芯片值，不能根据模糊相似度改写源文件。补丁锚点必须恰好命中一次；新增硬件等待循环要通过 `find_unbounded_waits` 审查并提供超时预算。C 语义扫描的活动分支模型是稳定接口，替换为 tree-sitter 后端时应保持 `CSourceModel` 字段和证据路径兼容。
+
+阶段一模块至少覆盖以下测试：带命名空间的 SVD、`#if 0` 误判、CAN 零误差或黄金采样点、UART/SPI 边界、重复锚点阻塞和无界硬件轮询发现。
 
 ## 新增扫描规则
 

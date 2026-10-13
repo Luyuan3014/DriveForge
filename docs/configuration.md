@@ -10,6 +10,7 @@ DriveForge 使用 JSON 配置文件，核心运行时不依赖第三方 YAML 库
   "hardware": {
     "platform": {"os": "rt-thread", "version": "5.1.0"},
     "mcu": {"model": "GD32F470ZIT6"},
+    "svd": {"path": "vendor/GD32F470.svd"},
     "target": {"peripheral": "CAN", "instance": "CAN0"},
     "pins": {"rx": "PD0", "tx": "PD1"},
     "clock": {"gate": "RCU_CAN0", "frequency": 60000000},
@@ -40,13 +41,15 @@ DriveForge 使用 JSON 配置文件，核心运行时不依赖第三方 YAML 库
 ```text
 driveforge scan PROJECT --request REQUIREMENT [options]
 driveforge plan PROJECT --request REQUIREMENT [options]
-driveforge run  PROJECT --request REQUIREMENT [options]
-driveforge view PROJECT [--output PATH] [--no-open]
+driveforge run    PROJECT --request REQUIREMENT [options]
+driveforge patch  PROJECT --request REQUIREMENT --config driveforge.json [--apply-patch]
+driveforge view   PROJECT [--output PATH] [--no-open]
 ```
 
 - `scan`：生成 Hardware Manifest 和原始扫描结果。
 - `plan`：额外生成 Driver Plan 与源码基线。
 - `run`：重新扫描和规划，并按显式开关执行阶段，最后生成 Verification Report。
+- `patch`：读取 `patch.operations`，先生成 `.driveforge/driver.patch`；只有显式添加 `--apply-patch` 才写入源文件。
 - `view`：从已有 `.driveforge` JSON 产物生成只读 `report.html`；不重新扫描，也不执行任何工作流阶段。
 
 通用选项：
@@ -63,6 +66,7 @@ driveforge view PROJECT [--output PATH] [--no-open]
 | `--rx-pin / --tx-pin` | 用户确认的 RX/TX 引脚 |
 | `--clock-bus / --clock-gate / --clock-frequency` | 时钟事实 |
 | `--irq` | 用户确认的 IRQ 符号；保留大小写 |
+| `--svd` | CMSIS-SVD 文件路径；解析结果作为可追溯事实写入状态 |
 
 没有快捷参数的值使用 `--set`：
 
@@ -99,6 +103,31 @@ driveforge plan . -r "适配 SPI2" `
 4. 从已确认型号或实例派生、不改变硬件语义的值。
 
 自动扫描不到关键事实时应补充配置或工程证据，不应降低门禁等级。
+
+
+## SVD 与确定性代码补丁
+
+`hardware.svd.path`（或 `--svd`）接受一个本地 CMSIS-SVD XML 文件。DriveForge 记录文件路径、设备名和解析出的外设数量；寄存器地址按基地址加偏移计算，位域同时保留 offset、width 和 mask。SVD 只补充事实，不会绕过已有关键事实门禁。
+
+`patch.operations` 必须使用唯一锚点：
+
+```json
+{
+  "patch": {
+    "operations": [
+      {
+        "path": "drv_can.c",
+        "required": ["can_deinit(CAN1);"],
+        "replacements": {"can_deinit(CAN1);": "can_deinit(CAN0);"}
+      }
+    ]
+  }
+}
+```
+
+预览发现文件不存在、必需锚点缺失或替换文本出现多次时，返回 `BLOCKED` 且不修改源文件。该规则保证 Adapt-First 补丁不会因宽泛正则或全局替换误伤工程。
+
+时序 API 位于 `driveforge.timing`：`solve_can_bittiming` 默认优先 80%~87.5% 采样点并限制误差 0.5%；`solve_uart_baudrate` 支持 8/16 倍过采样并限制误差 1.5%；`solve_spi_clock` 选择不超过器件上限的最快硬件分频。
 
 ## 命令执行
 
