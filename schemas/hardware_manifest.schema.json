@@ -16,7 +16,16 @@
     },
     "fact_summary": {"type": "object"},
     "blockers": {"type": "array", "items": {"type": "object"}},
-    "warnings": {"type": "array", "items": {"type": "string"}}
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "svd": {
+      "type": "object",
+      "properties": {
+        "path": {"type": "string"},
+        "device": {"type": "string"},
+        "peripherals": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": true
+    }
   },
   "$defs": {
     "fact": {

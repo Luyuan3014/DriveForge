@@ -86,6 +86,7 @@ class ScanResult:
     driver_candidates: list[DriverCandidate]
     inventory: dict[str, list[str]] = field(default_factory=dict)
     warnings: list[str] = field(default_factory=list)
+    semantic: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -95,6 +96,7 @@ class ScanResult:
             "driver_candidates": [item.to_dict() for item in self.driver_candidates],
             "inventory": self.inventory,
             "warnings": self.warnings,
+            "semantic": self.semantic,
         }
 
 

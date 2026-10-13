@@ -5,6 +5,7 @@ from collections import Counter
 from pathlib import Path
 
 from .intent import DriverIntent, SUPPORTED_PERIPHERALS
+from .c_analysis import CSourceAnalyzer
 from .models import Confidence, DriverCandidate, Evidence, Fact, ScanResult
 from .utils import excerpt_at, iter_text_files, line_number, read_text, relative_posix
 
@@ -34,6 +35,7 @@ class ProjectAnalyzer:
             facts.update(self._detect_target_hardware(self.intent.instance))
 
         candidates = self._detect_driver_candidates()
+        semantic = self._semantic_summary()
         if len(self._documents) >= 5000:
             warnings.append("Project scan stopped at the 5000-file safety limit.")
         return ScanResult(
@@ -43,6 +45,7 @@ class ProjectAnalyzer:
             driver_candidates=candidates,
             inventory=self._detect_inventory(),
             warnings=warnings,
+            semantic=semantic,
         )
 
     def _evidence(self, rel: str, text: str, match: re.Match[str]) -> Evidence:
@@ -270,6 +273,24 @@ class ProjectAnalyzer:
             )
         return facts
 
+    def _semantic_summary(self) -> dict[str, object]:
+        """Parse C branches and designated initializers without treating disabled code as live."""
+        analyzer = CSourceAnalyzer()
+        files: list[dict[str, object]] = []
+        macros: dict[str, int] = {}
+        initializers: list[dict[str, object]] = []
+        for path, rel, text in self._documents:
+            if path.suffix.lower() not in {".c", ".h", ".cc", ".cpp", ".hpp"}:
+                continue
+            model = analyzer.parse(rel, text)
+            active_macros = [item for item in model.macros if item.active]
+            for item in active_macros:
+                macros[item.name] = macros.get(item.name, 0) + 1
+            for item in model.initializers:
+                initializers.append({"type": item.type_name, "variable": item.variable, "fields": item.fields, "path": rel, "line": item.line})
+            if model.macros or model.initializers:
+                files.append({"path": rel, "active_lines": len(model.active_lines), "macros": len(active_macros), "initializers": len(model.initializers)})
+        return {"backend": "c-preprocessor-designated-initializer", "files": files, "active_macros": macros, "initializers": initializers[:200]}
     def _origin(self, rel: str) -> str:
         lower = rel.lower()
         if any(part in lower for part in ("firmware", "libraries", "vendor", "sdk")):
