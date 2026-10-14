@@ -14,6 +14,7 @@
       "type": "object",
       "additionalProperties": {"$ref": "#/$defs/fact"}
     },
+    "facts_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "fact_summary": {"type": "object"},
     "blockers": {"type": "array", "items": {"type": "object"}},
     "warnings": {"type": "array", "items": {"type": "string"}},

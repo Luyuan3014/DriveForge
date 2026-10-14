@@ -16,6 +16,7 @@
     "phases": {"type": "array", "items": {"type": "object"}},
     "modified_files": {"type": "array", "items": {"type": "string"}},
     "hardware_facts": {"type": "object"},
+    "hardware_facts_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "failures": {"type": "array", "items": {"type": "object"}}
   }
 }

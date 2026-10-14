@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .models import CommandResult, Fact, Status
+from .resolver import facts_digest
 from .utils import changed_files, project_snapshot, utc_now
 
 
@@ -263,5 +264,6 @@ def build_report(
         "phases": results,
         "modified_files": modified_files,
         "hardware_facts": facts_payload,
+        "hardware_facts_digest": facts_digest(facts),
         "failures": failures,
     }

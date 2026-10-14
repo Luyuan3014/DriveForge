@@ -45,6 +45,7 @@ class Fact:
     @property
     def resolved(self) -> bool:
         return self.value is not None and self.confidence not in {
+            Confidence.MEDIUM,
             Confidence.LOW,
             Confidence.UNKNOWN,
         }

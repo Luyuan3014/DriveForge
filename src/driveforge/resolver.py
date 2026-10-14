@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import re
+import hashlib
+import json
 from pathlib import Path
 from typing import Any
 
@@ -151,6 +153,19 @@ def validate_facts(facts: dict[str, Fact]) -> tuple[list[dict[str, Any]], list[s
             }
         )
 
+    svd_device = facts.get("svd.device")
+    if mcu and mcu.resolved and svd_device and svd_device.resolved:
+        model = re.sub(r"[^A-Z0-9]", "", str(mcu.value).upper())
+        device = re.sub(r"[^A-Z0-9]", "", str(svd_device.value).upper())
+        if model not in device and device not in model:
+            blockers.append(
+                {
+                    "fact": "svd.device/mcu.model",
+                    "reason": f"CMSIS-SVD device {svd_device.value} does not match MCU {mcu.value}.",
+                    "resolution": "Use the SVD that belongs to the verified target MCU.",
+                }
+            )
+
     peripheral_fact = facts.get("target.peripheral")
     peripheral = str(peripheral_fact.value).upper() if peripheral_fact and peripheral_fact.resolved else None
     instance_fact = facts.get("target.instance")
@@ -227,13 +242,16 @@ def build_manifest(
 ) -> dict[str, Any]:
     verified = sum(fact.confidence == Confidence.VERIFIED for fact in facts.values())
     high = sum(fact.confidence == Confidence.HIGH for fact in facts.values())
+    serialized_facts = {key: fact.to_dict() for key, fact in sorted(facts.items())}
+    digest = facts_digest(facts)
     return {
         "schema_version": "1.0",
         "generated_at": utc_now(),
         "project": str(project.resolve()),
         "request": request,
         "status": Status.BLOCKED.value if blockers else Status.READY.value,
-        "facts": {key: fact.to_dict() for key, fact in sorted(facts.items())},
+        "facts": serialized_facts,
+        "facts_digest": digest,
         "fact_summary": {
             "verified": verified,
             "high_confidence": high,
@@ -243,3 +261,11 @@ def build_manifest(
         "blockers": blockers,
         "warnings": warnings,
     }
+
+
+def facts_digest(facts: dict[str, Fact]) -> str:
+    """Return the stable audit digest for a fact set, excluding timestamps."""
+    serialized = {key: fact.to_dict() for key, fact in sorted(facts.items())}
+    return hashlib.sha256(
+        json.dumps(serialized, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()

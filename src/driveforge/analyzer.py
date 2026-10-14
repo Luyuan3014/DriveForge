@@ -5,7 +5,7 @@ from collections import Counter
 from pathlib import Path
 
 from .intent import DriverIntent, SUPPORTED_PERIPHERALS
-from .c_analysis import CSourceAnalyzer
+from .c_analysis import CSourceAnalyzer, active_preprocessed_lines
 from .models import Confidence, DriverCandidate, Evidence, Fact, ScanResult
 from .utils import excerpt_at, iter_text_files, line_number, read_text, relative_posix
 
@@ -348,20 +348,31 @@ class ProjectAnalyzer:
             if path.suffix.lower() in {".md", ".txt", ".yaml", ".yml", ".xml"}:
                 continue
             lower_name = path.name.lower()
+            searchable = text
+            active_macros: set[str] = set()
+            if path.suffix.lower() in {".c", ".h", ".cc", ".cpp", ".hpp"}:
+                active_lines, _ = active_preprocessed_lines(text, assume_unknown_ifdef=True)
+                searchable = "\n".join(active_lines)
+                active_macros = {
+                    item.name for item in CSourceAnalyzer().parse(rel, text).macros if item.active
+                }
             for peripheral in SUPPORTED_PERIPHERALS:
                 if target and peripheral != target:
                     continue
                 token = peripheral.lower()
                 filename_hit = token in lower_name or (peripheral == "UART" and "serial" in lower_name)
-                matches = list(re.finditer(rf"\b{peripheral}\d+\b", text, re.IGNORECASE))
-                framework_hit = bool(re.search(rf"\bRT_USING_{peripheral}\b|\brt_hw_{token}_init\b", text, re.IGNORECASE))
+                matches = list(re.finditer(rf"\b{peripheral}\d+\b", searchable, re.IGNORECASE))
+                framework_hit = bool(
+                    re.search(rf"\bRT_USING_{peripheral}\b|\brt_hw_{token}_init\b", searchable, re.IGNORECASE)
+                    or f"RT_USING_{peripheral}" in active_macros
+                )
                 if not filename_hit and not matches and not framework_hit:
                     continue
                 instances = sorted({match.group(0).upper() for match in matches})
                 origin = self._origin(rel)
                 origin_score = {"project": 30, "rtos_bsp": 20, "vendor_sdk": 10}[origin]
                 score = origin_score + (25 if filename_hit else 0) + (15 if framework_hit else 0) + min(len(matches), 20)
-                evidence = [self._evidence(rel, text, match) for match in matches[:3]]
+                evidence = [self._evidence(rel, searchable, match) for match in matches[:3]]
                 if not evidence:
                     evidence = [Evidence(path=rel, excerpt=path.name)]
                 candidates.append(
