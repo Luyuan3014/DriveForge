@@ -12,6 +12,7 @@ from driveforge.analyzer import ProjectAnalyzer
 from driveforge.config import hardware_overrides, load_config
 from driveforge.intent import parse_request
 from driveforge.planner import build_plan
+from driveforge.models import Confidence, Fact
 from driveforge.resolver import build_manifest, merge_facts, validate_facts
 
 
@@ -66,6 +67,7 @@ class PipelineTests(unittest.TestCase):
             manifest = build_manifest(project, request, facts, blockers, warnings)
             self.assertEqual("READY", manifest["status"])
             self.assertGreaterEqual(manifest["fact_summary"]["verified"], 8)
+            self.assertRegex(manifest["facts_digest"], r"^[a-f0-9]{64}$")
 
     def test_missing_hardware_facts_block_workflow(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -124,6 +126,21 @@ class PipelineTests(unittest.TestCase):
             blocked_facts = [item["fact"] for item in blockers]
             self.assertIn("target.instance", blocked_facts)
             self.assertIn("pins.rx", blocked_facts)
+
+    def test_svd_device_mismatch_blocks_fact_gate(self) -> None:
+        facts = {
+            "platform.os": Fact("platform.os", "rt-thread", Confidence.VERIFIED, "test"),
+            "mcu.model": Fact("mcu.model", "GD32F470ZIT6", Confidence.VERIFIED, "test"),
+            "target.peripheral": Fact("target.peripheral", "CAN", Confidence.VERIFIED, "test"),
+            "target.instance": Fact("target.instance", "CAN0", Confidence.VERIFIED, "test"),
+            "pins.rx": Fact("pins.rx", "PD0", Confidence.VERIFIED, "test"),
+            "pins.tx": Fact("pins.tx", "PD1", Confidence.VERIFIED, "test"),
+            "clock.gate": Fact("clock.gate", "RCU_CAN0", Confidence.VERIFIED, "test"),
+            "interrupt.irq": Fact("interrupt.irq", "CAN0_IRQn", Confidence.VERIFIED, "test"),
+            "svd.device": Fact("svd.device", "STM32F407", Confidence.VERIFIED, "cmsis-svd"),
+        }
+        blockers, _ = validate_facts(facts)
+        self.assertTrue(any(item["fact"] == "svd.device/mcu.model" for item in blockers))
 
 
 if __name__ == "__main__":
