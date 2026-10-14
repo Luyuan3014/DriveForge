@@ -18,22 +18,57 @@ class TimeoutFinding:
 
 # Conservative patterns: only loops whose condition reads a likely peripheral
 # status symbol are reported. Generic application loops are left alone.
-_WAIT = re.compile(r"while\s*\(\s*!?\s*\(?\s*([A-Za-z_]\w*(?:->|\.|_)[A-Za-z0-9_]+|[A-Z][A-Z0-9_]*(?:\s*&\s*[A-Z][A-Z0-9_]*)?)\s*\)?\s*\)")
 _TIMEOUT = re.compile(r"timeout|deadline|tick|elapsed|retry|for\s*\(", re.I)
+
+
+def _mask_comments_and_strings(text: str) -> str:
+    """Mask C comments and literals while preserving offsets and newlines."""
+    pattern = re.compile(r"/\*.*?\*/|//[^\n]*|(?:\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*')", re.S)
+    return pattern.sub(lambda match: "".join("\n" if char == "\n" else " " for char in match.group(0)), text)
+
+
+def _balanced_end(text: str, start: int, opening: str, closing: str) -> int | None:
+    if start >= len(text) or text[start] != opening:
+        return None
+    depth = 0
+    for index in range(start, len(text)):
+        if text[index] == opening:
+            depth += 1
+        elif text[index] == closing:
+            depth -= 1
+            if depth == 0:
+                return index
+    return None
 
 
 def find_unbounded_waits(path: str | Path, text: str | None = None) -> list[TimeoutFinding]:
     source = Path(path)
     content = source.read_text(encoding="utf-8", errors="replace") if text is None else text
+    masked = _mask_comments_and_strings(content)
     findings: list[TimeoutFinding] = []
-    lines = content.splitlines()
-    for index, line in enumerate(lines, 1):
-        match = _WAIT.search(line)
-        if not match or _TIMEOUT.search(line):
+    for match in re.finditer(r"\bwhile\b\s*\(", masked, re.I):
+        open_paren = masked.find("(", match.start())
+        close_paren = _balanced_end(masked, open_paren, "(", ")")
+        if close_paren is None:
             continue
-        signal = match.group(1)
-        if any(token in signal.upper() for token in ("STAT", "STATUS", "FLAG", "READY", "BUSY", "TX", "RX", "ERR")):
-            findings.append(TimeoutFinding(source.as_posix(), index, line.strip()))
+        condition = masked[open_paren + 1:close_paren]
+        if not any(token in condition.upper() for token in ("STAT", "STATUS", "FLAG", "READY", "BUSY", "TX", "RX", "ERR")):
+            continue
+        body_start = close_paren + 1
+        while body_start < len(masked) and masked[body_start].isspace():
+            body_start += 1
+        body_end = body_start
+        if body_start < len(masked) and masked[body_start] == "{":
+            body_end = _balanced_end(masked, body_start, "{", "}") or len(masked)
+        else:
+            body_end = masked.find(";", body_start)
+            body_end = len(masked) if body_end < 0 else body_end + 1
+        body = masked[body_start:body_end]
+        if _TIMEOUT.search(condition) or _TIMEOUT.search(body):
+            continue
+        line = content.count("\n", 0, match.start()) + 1
+        original_line = content.splitlines()[line - 1].strip() if content.splitlines() else ""
+        findings.append(TimeoutFinding(source.as_posix(), line, original_line))
     return findings
 
 

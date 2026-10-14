@@ -5,6 +5,15 @@ from math import inf
 from typing import Any
 
 
+def _validate_range(name: str, value: tuple[int, int]) -> None:
+    try:
+        lower, upper = value
+    except (TypeError, ValueError):
+        raise ValueError(f"{name} must be a positive ascending range") from None
+    if lower < 1 or lower > upper:
+        raise ValueError(f"{name} must be a positive ascending range")
+
+
 @dataclass(frozen=True, slots=True)
 class TimingSolution:
     peripheral: str
@@ -52,6 +61,8 @@ def solve_can_bittiming(
     """
     if clock_hz <= 0 or bitrate <= 0:
         raise ValueError("clock_hz and bitrate must be positive")
+    for name, value in (("prescaler_range", prescaler_range), ("bs1_range", bs1_range), ("bs2_range", bs2_range), ("sjw_range", sjw_range)):
+        _validate_range(name, value)
     requested_sp = 0.8333333333 if sample_point is None else sample_point
     if not 0.5 <= requested_sp < 1.0:
         raise ValueError("sample_point must be between 0.5 and 1.0")
@@ -59,6 +70,8 @@ def solve_can_bittiming(
     for prescaler in range(prescaler_range[0], prescaler_range[1] + 1):
         for bs1 in range(bs1_range[0], bs1_range[1] + 1):
             for bs2 in range(bs2_range[0], bs2_range[1] + 1):
+                if sjw_range[0] > bs2:
+                    continue
                 tq = 1 + bs1 + bs2
                 actual = clock_hz / (prescaler * tq)
                 error = abs(actual - bitrate) / bitrate
@@ -75,7 +88,7 @@ def solve_can_bittiming(
                     prescaler=prescaler,
                     bs1=bs1,
                     bs2=bs2,
-                    sjw=sjw_range[0] if sjw_range[0] <= bs2 else bs2,
+                    sjw=min(sjw_range[1], bs2),
                     safe=error <= max_error,
                     constraints={"sample_point_min": 0.80, "sample_point_max": 0.875, "max_error": max_error},
                 )
@@ -104,9 +117,11 @@ def solve_uart_baudrate(
         divider = clock_hz / (mode * baudrate)
         if divider <= 0:
             continue
-        # Hardware usually stores a fixed point divider.  4 fractional bits
-        # cover STM32/GD32 style BRR registers and remain deterministic.
-        rounded = round(divider * 16) / 16
+        # STM32/GD32 BRR uses four fractional bits for OVER16 and three for
+        # OVER8. Keeping the quantisation explicit avoids reporting a result
+        # that the target register cannot represent.
+        quantum = 16 if mode == 16 else 8
+        rounded = round(divider * quantum) / quantum
         actual = clock_hz / (mode * rounded)
         error = abs(actual - baudrate) / baudrate
         candidate = TimingSolution(
@@ -137,6 +152,8 @@ def solve_spi_clock(
     """Choose the fastest supported SPI divider that does not exceed max_sck."""
     if clock_hz <= 0 or max_sck_hz <= 0:
         raise ValueError("clock_hz and max_sck_hz must be positive")
+    if not divisors or any(divisor <= 0 for divisor in divisors):
+        raise ValueError("divisors must contain positive values")
     valid = [(divisor, clock_hz // divisor) for divisor in divisors if clock_hz // divisor <= max_sck_hz]
     if not valid:
         raise ValueError("no SPI divider can satisfy max_sck_hz")

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import ast
 import re
 from pathlib import Path
 from typing import Iterable
@@ -47,19 +48,85 @@ def _eval_condition(expression: str, macros: dict[str, str | None]) -> bool:
     expr = re.sub(r"defined\s*\(\s*([A-Za-z_]\w*)\s*\)", lambda m: "1" if m.group(1) in macros else "0", expr)
     expr = re.sub(r"defined\s+([A-Za-z_]\w*)", lambda m: "1" if m.group(1) in macros else "0", expr)
     for name, value in macros.items():
-        expr = re.sub(rf"\b{re.escape(name)}\b", value if value not in (None, "") else "1", expr)
+        replacement = value if value not in (None, "") else "1"
+        # Only substitute simple object-like macro values. Function-like and
+        # token-pasting macros are intentionally treated as unknown.
+        if re.fullmatch(r"[0-9A-Fa-fxXuUlL()+\-*/%<>=!&|~\s]+", replacement):
+            replacement = re.sub(r"(?<=\d)[uUlL]+\b", "", replacement)
+            expr = re.sub(rf"\b{re.escape(name)}\b", replacement, expr)
     expr = expr.replace("&&", " and ").replace("||", " or ")
     expr = re.sub(r"!\s*(?!=)", " not ", expr)
-    if not re.fullmatch(r"[\d\s()+\-*/%<>=!andort]+", expr):
-        return False
+    expr = re.sub(r"(?<=\d)[uUlL]+\b", "", expr)
     try:
-        return bool(eval(expr, {"__builtins__": {}}, {}))
-    except (SyntaxError, TypeError, ValueError, ZeroDivisionError):
+        tree = ast.parse(expr, mode="eval")
+    except SyntaxError:
+        return False
+
+    def evaluate(node: ast.AST) -> int | bool:
+        if isinstance(node, ast.Constant) and isinstance(node.value, (int, bool)):
+            return node.value
+        if isinstance(node, ast.Name):
+            # C preprocessors replace an undefined identifier with zero in an
+            # #if expression. This also prevents a source file from injecting
+            # arbitrary Python names into the evaluator.
+            return 0
+        if isinstance(node, ast.BoolOp):
+            values = [bool(evaluate(item)) for item in node.values]
+            return all(values) if isinstance(node.op, ast.And) else any(values)
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.Not, ast.Invert, ast.USub, ast.UAdd)):
+            value = evaluate(node.operand)
+            if isinstance(node.op, ast.Not):
+                return not bool(value)
+            if isinstance(node.op, ast.Invert):
+                return ~int(value)
+            return -int(value) if isinstance(node.op, ast.USub) else int(value)
+        if isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Add, ast.Sub, ast.Mult, ast.Div, ast.FloorDiv, ast.Mod, ast.BitAnd, ast.BitOr, ast.BitXor, ast.LShift, ast.RShift)):
+            left, right = int(evaluate(node.left)), int(evaluate(node.right))
+            if isinstance(node.op, (ast.Div, ast.FloorDiv)):
+                return left // right
+            if isinstance(node.op, ast.Add): return left + right
+            if isinstance(node.op, ast.Sub): return left - right
+            if isinstance(node.op, ast.Mult): return left * right
+            if isinstance(node.op, ast.Mod): return left % right
+            if isinstance(node.op, ast.BitAnd): return left & right
+            if isinstance(node.op, ast.BitOr): return left | right
+            if isinstance(node.op, ast.BitXor): return left ^ right
+            if isinstance(node.op, ast.LShift): return left << right
+            return left >> right
+        if isinstance(node, ast.Compare):
+            left = evaluate(node.left)
+            for operator, comparator in zip(node.ops, node.comparators):
+                right = evaluate(comparator)
+                checks = {
+                    ast.Eq: left == right, ast.NotEq: left != right,
+                    ast.Lt: left < right, ast.LtE: left <= right,
+                    ast.Gt: left > right, ast.GtE: left >= right,
+                }
+                result = next((value for kind, value in checks.items() if isinstance(operator, kind)), False)
+                if not result:
+                    return False
+                left = right
+            return True
+        raise ValueError("unsupported preprocessor expression")
+
+    try:
+        return bool(evaluate(tree.body))
+    except (TypeError, ValueError, ZeroDivisionError, OverflowError):
         return False
 
 
-def active_preprocessed_lines(text: str, predefined: dict[str, str | None] | None = None) -> tuple[list[str], dict[str, str | None]]:
-    """Return lines active under a small, deterministic C preprocessor model."""
+def active_preprocessed_lines(
+    text: str,
+    predefined: dict[str, str | None] | None = None,
+    *,
+    assume_unknown_ifdef: bool = False,
+) -> tuple[list[str], dict[str, str | None]]:
+    """Return lines active under a small, deterministic C preprocessor model.
+
+    ``assume_unknown_ifdef`` is useful for inventory discovery when compiler
+    defines are unavailable: feature-gated source is retained for candidate
+    search, while explicit ``#if 0`` branches remain disabled.
+    """
     macros = dict(predefined or {})
     lines = _strip_comments(text).splitlines()
     output = [""] * len(lines)
@@ -73,8 +140,8 @@ def active_preprocessed_lines(text: str, predefined: dict[str, str | None] | Non
                 parent = active
                 condition = (
                     _eval_condition(argument, macros) if command == "if"
-                    else argument in macros if command == "ifdef"
-                    else argument not in macros
+                    else (argument in macros or assume_unknown_ifdef) if command == "ifdef"
+                    else (argument not in macros or assume_unknown_ifdef)
                 )
                 stack.append((parent, parent and condition))
                 active = parent and condition

@@ -69,6 +69,9 @@ class SVDDevice:
         facts: dict[str, Any] = {"svd.device": self.name}
         if self.vendor:
             facts["svd.vendor"] = self.vendor
+        if self.cpu_name:
+            facts["svd.cpu"] = self.cpu_name
+        facts["svd.address_unit_bits"] = self.address_unit_bits
         for peripheral in self.peripherals:
             prefix = peripheral.name.lower()
             facts[f"svd.{prefix}.base_address"] = peripheral.base_address
@@ -123,6 +126,10 @@ def _children(element: ET.Element, name: str) -> list[ET.Element]:
     return [child for child in element.iter() if _tag(child) == name]
 
 
+def _direct_children(element: ET.Element, name: str) -> list[ET.Element]:
+    return [child for child in list(element) if _tag(child) == name]
+
+
 def _first(element: ET.Element, name: str) -> ET.Element | None:
     return next((child for child in element.iter() if _tag(child) == name), None)
 
@@ -150,6 +157,56 @@ def _parse_field(node: ET.Element) -> SVDField:
     )
 
 
+def _expand_indices(raw: str | None, count: int) -> list[str]:
+    if not raw:
+        return [str(index) for index in range(count)]
+    values: list[str] = []
+    for item in raw.split(","):
+        item = item.strip()
+        if "-" in item:
+            start, end = (part.strip() for part in item.split("-", 1))
+            try:
+                values.extend(str(index) for index in range(int(start, 0), int(end, 0) + 1))
+            except ValueError:
+                values.append(item)
+        elif item:
+            values.append(item)
+    return values or [str(index) for index in range(count)]
+
+
+def _parse_register(node: ET.Element) -> list[SVDRegister]:
+    """Parse one register, including the standard CMSIS-SVD ``dim`` form."""
+    reg_name = _text(_first(node, "name"))
+    offset = _number(_text(_first(node, "addressOffset")))
+    if not reg_name or offset is None:
+        return []
+    count = _number(_text(_first(node, "dim")), 1) or 1
+    increment = _number(_text(_first(node, "dimIncrement")), 0) or 0
+    names = _expand_indices(_text(_first(node, "dimIndex")), count)
+    fields_node = _first(node, "fields")
+    fields: list[SVDField] = []
+    if fields_node is not None:
+        for field in _direct_children(fields_node, "field"):
+            try:
+                fields.append(_parse_field(field))
+            except ValueError:
+                continue
+    parsed: list[SVDRegister] = []
+    for index in range(count):
+        suffix = names[index] if index < len(names) else str(index)
+        expanded_name = reg_name.replace("%s", suffix) if "%s" in reg_name else (f"{reg_name}{suffix}" if count > 1 else reg_name)
+        parsed.append(SVDRegister(
+            name=expanded_name,
+            address_offset=offset + (index * increment),
+            size=_number(_text(_first(node, "size"))),
+            access=_text(_first(node, "access")),
+            reset_value=_number(_text(_first(node, "resetValue"))),
+            description=_text(_first(node, "description")),
+            fields=tuple(fields),
+        ))
+    return parsed
+
+
 def parse_svd(path: str | Path) -> SVDDevice:
     """Parse a CMSIS-SVD XML file using only the standard library.
 
@@ -171,35 +228,15 @@ def parse_svd(path: str | Path) -> SVDDevice:
         registers_node = _first(node, "registers")
         registers: list[SVDRegister] = []
         if registers_node is not None:
-            for reg in [item for item in list(registers_node) if _tag(item) == "register"]:
-                reg_name = _text(_first(reg, "name"))
-                offset = _number(_text(_first(reg, "addressOffset")))
-                if not reg_name or offset is None:
-                    continue
-                fields_node = _first(reg, "fields")
-                fields: list[SVDField] = []
-                if fields_node is not None:
-                    for field in [item for item in list(fields_node) if _tag(item) == "field"]:
-                        try:
-                            fields.append(_parse_field(field))
-                        except ValueError:
-                            continue
-                registers.append(SVDRegister(
-                    name=reg_name,
-                    address_offset=offset,
-                    size=_number(_text(_first(reg, "size"))),
-                    access=_text(_first(reg, "access")),
-                    reset_value=_number(_text(_first(reg, "resetValue"))),
-                    description=_text(_first(reg, "description")),
-                    fields=tuple(fields),
-                ))
+            for reg in _direct_children(registers_node, "register"):
+                registers.extend(_parse_register(reg))
         interrupts = tuple(
             SVDInterrupt(
                 name=_text(_first(item, "name")) or "UNNAMED",
                 value=_number(_text(_first(item, "value")), 0) or 0,
                 description=_text(_first(item, "description")),
             )
-            for item in _children(node, "interrupt")
+            for item in _direct_children(node, "interrupt")
             if _text(_first(item, "name"))
         )
         peripherals.append(SVDPeripheral(
