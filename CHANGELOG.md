@@ -13,11 +13,13 @@ DriveForge 的所有重要变更都记录在此文件中。格式参考 [Keep a 
 - 增加 CAN、UART、SPI 时序求解器（`driveforge.timing`），返回分频参数、采样点、实际速率和误差。
 - 增加锚点唯一匹配的 Adapt-First 补丁引擎（`driveforge.patcher`）和 `driveforge patch`，生成可审查的 unified Git diff。
 - 增加硬件轮询超时扫描与 Guard 模板（`driveforge.defensive`）。
+- 增加事实集合 SHA-256 摘要（`facts_digest`）、SVD/MCU 一致性门禁和阶段二文档校正。
 
 ### Changed
 
 - 工程扫描结果现在包含语义扫描摘要；可选 SVD 会随 `.driveforge` 状态和 Manifest 留存。
-- 版本升级到 0.2.0，阶段一产物继续使用零运行时第三方依赖。
+- 版本升级到 0.2.0，阶段二产物继续使用零运行时第三方依赖。
+- 补丁应用改为整批原子替换；C 候选扫描尊重显式关闭的条件编译分支；SVD 支持寄存器 `dim` 展开。
 
 ## [0.1.1] - 2026-09-24
 

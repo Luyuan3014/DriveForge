@@ -1,6 +1,6 @@
 # DriveForge 演进蓝图与现代化驱动工程规范设计指南
 > **DriveForge Evolution Blueprint: Modern Embedded Driver Engineering Architecture**  
-> 版本：v1.0.0 | 状态：阶段一已完成，后续阶段规划中 | 适用目标：DriveForge 0.2.0 ~ 1.0.0 重构演进
+> 版本：v1.0.0 | 状态：阶段二已完成，后续阶段规划中 | 适用目标：DriveForge 0.2.0 ~ 1.0.0 重构演进
 
 ---
 
@@ -293,27 +293,32 @@ flowchart LR
 ```mermaid
 timeline
     title DriveForge 演进路线图
-    0.2.0 (基石阶段) : SVD/PinMux芯片模型
+    0.1.0 (阶段一：MVP) : 证据门禁与软件工作流
+    0.2.0 (阶段二：确定性闭环) : SVD/PinMux芯片模型
                      : C语法树AST扫描
                      : 时钟时序精算求解器
                      : 确定性代码补丁生成
-    0.3.0 (闭环阶段) : 原生探针控制(pyocd/pylink)
+    0.3.0 (阶段三：硬件闭环) : 原生探针控制(pyocd/pylink)
                      : RTT/串口测试协议
                      : 可执行Playbooks套件
                      : driveforge doctor自检
-    0.4.0 (体验阶段) : DriveForge Studio一体化控制台
+    0.4.0 (阶段四：体验) : DriveForge Studio一体化控制台
                      : 交互式Pinout封装引脚图
                      : 双栏代码Diff审查
                      : Rich TUI向导
-    1.0.0 (成熟阶段) : 多RTOS支持(Zephyr/FreeRTOS)
+    1.0.0 (阶段五：成熟版) : 多RTOS支持(Zephyr/FreeRTOS)
                      : 多架构扩展(Cortex-M7/RISC-V)
                      : Renode虚拟系统仿真
                      : 自动化故障自愈闭环
 ```
 
-### 阶段一：确定性事实底座与代码闭环（v0.2.0）
+### 阶段一：MVP 软件闭环基础（v0.1.0）
+- **核心目标**：建立证据门禁、复用优先规划、显式构建/烧录/测试阶段和可追溯报告。
+- **交付状态**：已完成。该阶段为阶段二提供工程扫描、事实模型和执行器边界。
+
+### 阶段二：确定性事实底座与代码闭环（v0.2.0）
 - **核心目标**：彻底解决“正则匹配误判”与“不能自主生成代码补丁”问题。
-- **交付状态**：已完成（2026-10-13）。阶段一能力是可调用的 Python 模块和 CLI 产物，不依赖网络或第三方运行时包。
+- **交付状态**：已完成（2026-10-13）。阶段二能力是可调用的 Python 模块和 CLI 产物，不依赖网络或第三方运行时包。
 - **任务清单**：
   1. [x] 集成标准库 CMSIS-SVD 解析模块 `driveforge.svd`，建立设备、外设基地址、寄存器、位域和中断向量事实库；`--svd` 解析结果写入 Manifest/State。
   2. [x] 引入 `driveforge.c_analysis` 语义扫描边界，先解析 `#if/#ifdef/#elif/#else` 活动分支，再提取宏和指定成员结构体初始化，避免关闭分支污染候选证据。该边界可替换为 tree-sitter 后端而不改变消费者接口。
@@ -321,7 +326,7 @@ timeline
   4. [x] 实现 `driveforge.patcher` 的 Adapt-First 锚点补丁引擎和 `driveforge patch`，所有替换要求唯一命中，预览产出 unified Git diff，避免未经审查的全局替换。
   5. [x] 增加 `driveforge.defensive` 的硬件轮询无界循环检测与超时 Guard 模板；中断保护、Cache 维护仍由目标框架适配层按证据生成。
 
-#### 阶段一使用方式
+#### 阶段二使用方式
 
 ```powershell
 # 以 SVD 作为额外、可追溯的硬件事实源
@@ -334,7 +339,9 @@ driveforge patch . -r "增加 CAN0 驱动" --config driveforge.json --apply-patc
 
 `driveforge patch` 只接受 `patch.operations` 中的显式替换，不会根据相似文本猜测目标。预览写入 `.driveforge/driver.patch` 和 `patch_result.json`；命中数为零或大于一都会阻塞并保持源文件不变。时序求解器和 C 语义模型可在 Python API 中独立调用，适合单元测试和后续 Studio/MCP 接入。
 
-### 阶段二：硬件探针与自动化测试闭环（v0.3.0）
+本阶段的确定性边界是“本地工程证据 + 本地 CMSIS-SVD + 显式配置”。PinMux 封装引出校验、原生探针控制、RTT/串口协议和物理板卡 Benchmark 需要额外的器件数据库或硬件环境，分别保留在后续阶段，不以模拟结果宣称 `VERIFIED`。
+
+### 阶段三：硬件探针与自动化测试闭环（v0.3.0）
 - **核心目标**：打通从“编译成功”到“物理板卡真实测试验证”的闭环。
 - **任务清单**：
   1. [ ] 接入 `pylink-square` / `pyocd`，原生支持 J-Link、DAPLink 烧录与复位。
@@ -343,7 +350,7 @@ driveforge patch . -r "增加 CAN0 驱动" --config driveforge.json --apply-patc
   4. [ ] 推出 `driveforge doctor` 指令，实现探针与串口环境一键体检。
   5. [ ] 在物理 GD32F470 开发板上跑通第一套标准 Benchmark。
 
-### 阶段三：UI 一体化重构为 DriveForge Studio（v0.4.0）
+### 阶段四：UI 一体化重构为 DriveForge Studio（v0.4.0）
 - **核心目标**：将 `website/` 科技美学与本地真数据深度融合，大幅降低认知门槛。
 - **任务清单**：
   1. [ ] 重构 `viewer.py`，基于本地 WebSocket / HTTP Server 搭建 DriveForge Studio 前端。
@@ -351,7 +358,7 @@ driveforge patch . -r "增加 CAN0 驱动" --config driveforge.json --apply-patc
   3. [ ] 实现双栏代码差异比对（Diff Viewer）与一键确认打补丁功能。
   4. [ ] CLI 增加 Rich/Textual 交互向导，在缺失硬件事实时提供友好选项引导。
 
-### 阶段四：多生态覆盖与终极自主自愈（v1.0.0 正式版）
+### 阶段五：多生态覆盖与终极自主自愈（v1.0.0 正式版）
 - **核心目标**：跨平台工业级交付，支持全自主软硬件协同修复。
 - **任务清单**：
   1. [ ] 扩展支持 Zephyr RTOS、FreeRTOS 以及裸机（Bare-Metal）框架。

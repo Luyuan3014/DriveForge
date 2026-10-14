@@ -21,18 +21,19 @@ Roadmap 用来描述实现顺序，不代表对具体发布日期的承诺。详
 - 在真实 GD32F470 + RT-Thread 5.x + CAN0 开发板上跑通第一套公开 Benchmark；
 - 内置 J-Link/OpenOCD/pyOCD 命令生成和工具可用性诊断；
 - 串口/RTT 交互协议与结构化硬件测试结果采集；
-- 原理图和芯片手册的专用解析器（CMSIS-SVD 阶段一已提供）；
+- 原理图和芯片手册的专用解析器（CMSIS-SVD 阶段二已提供）；
 - 独立的大模型 Provider 与工具调用循环。
 
-## 0.2 阶段一：确定性事实底座与代码闭环（已完成）
+## 0.2 阶段二：确定性事实底座与代码闭环（已完成）
 
 - `driveforge.svd` 解析 CMSIS-SVD，并将基地址、寄存器、位域、IRQ 固化到扫描状态。
 - `driveforge.c_analysis` 先处理活动条件编译分支，再提取宏和指定成员初始化，降低正则误判。
 - `driveforge.timing` 提供 CAN 位时序、UART 过采样和 SPI 安全分频求解。
 - `driveforge.patcher` 与 `driveforge patch` 使用唯一锚点生成可审查 unified diff，支持显式应用。
-- `driveforge.defensive` 提供无界硬件轮询检查和超时 Guard 模板。
+- `driveforge.defensive` 提供屏蔽注释/字符串后的无界硬件轮询检查和超时 Guard 模板。
+- Manifest 增加稳定的 `facts_digest`，并在 SVD 设备与 MCU 不一致时阻塞事实门禁；补丁应用使用整批原子替换。
 
-阶段一不宣称完成真实板卡验证；它把硬件事实和代码变更变成可重复、可审查的输入，为 0.3 探针闭环提供稳定接口。具体用法见 [`docs/evolution-blueprint.md`](evolution-blueprint.md) 和 [`docs/architecture.md`](architecture.md)。
+阶段二不宣称完成真实板卡验证；它把硬件事实和代码变更变成可重复、可审查的输入，为 0.3 阶段三探针闭环提供稳定接口。具体用法见 [`docs/evolution-blueprint.md`](evolution-blueprint.md) 和 [`docs/architecture.md`](architecture.md)。
 
 ## 下一里程碑：CAN0 真实 Benchmark
 

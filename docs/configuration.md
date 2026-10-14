@@ -107,7 +107,7 @@ driveforge plan . -r "适配 SPI2" `
 
 ## SVD 与确定性代码补丁
 
-`hardware.svd.path`（或 `--svd`）接受一个本地 CMSIS-SVD XML 文件。DriveForge 记录文件路径、设备名和解析出的外设数量；寄存器地址按基地址加偏移计算，位域同时保留 offset、width 和 mask。SVD 只补充事实，不会绕过已有关键事实门禁。
+`hardware.svd.path`（或 `--svd`）接受一个本地 CMSIS-SVD XML 文件。DriveForge 记录文件路径、设备名和解析出的外设数量；寄存器地址按基地址加偏移计算，位域同时保留 offset、width 和 mask，并展开标准 `dim` 寄存器数组。SVD 只补充事实，不会绕过已有关键事实门禁；如果 SVD 设备名与已确认 MCU 不一致，事实门禁会阻塞。Manifest 的 `facts_digest` 和 Verification Report 的 `hardware_facts_digest` 是排序后事实 JSON 的 SHA-256，可用于审查输入是否被改变。
 
 `patch.operations` 必须使用唯一锚点：
 
@@ -125,7 +125,7 @@ driveforge plan . -r "适配 SPI2" `
 }
 ```
 
-预览发现文件不存在、必需锚点缺失或替换文本出现多次时，返回 `BLOCKED` 且不修改源文件。该规则保证 Adapt-First 补丁不会因宽泛正则或全局替换误伤工程。
+预览发现文件不存在、必需锚点缺失、替换文本出现多次或同一批操作重复目标文件时，返回 `BLOCKED` 且不修改源文件。显式应用会先准备全部临时文件，再原子替换；任一目标失败会回滚已替换内容。该规则保证 Adapt-First 补丁不会因宽泛正则或全局替换误伤工程。
 
 时序 API 位于 `driveforge.timing`：`solve_can_bittiming` 默认优先 80%~87.5% 采样点并限制误差 0.5%；`solve_uart_baudrate` 支持 8/16 倍过采样并限制误差 1.5%；`solve_spi_clock` 选择不超过器件上限的最快硬件分频。
 

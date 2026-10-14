@@ -1,6 +1,6 @@
-# DriveForge 架构（0.2 阶段一）
+# DriveForge 架构（0.2 阶段二）
 
-本文描述 `0.2.x` 阶段一的已实现架构。产品长期愿景和完整需求以 [`DriveForge-PRD.md`](../DriveForge-PRD.md) 为准；本文只记录当前代码能够完成的事情。
+本文描述 `0.2.x` 阶段二“确定性事实底座与代码闭环”的已实现架构。产品长期愿景和完整需求以 [`DriveForge-PRD.md`](../DriveForge-PRD.md) 为准；本文只记录当前代码能够完成的事情。
 
 ## 设计目标
 
@@ -100,15 +100,16 @@ evidence:
 
 Planner 根据候选文件来源和匹配度进行排序。项目内实现优先于 RTOS BSP，RTOS BSP 优先于厂商 SDK。若存在不同实例，例如目标是 `CAN0` 而项目已有 `CAN1`，计划采用 `adapt_existing_instance`；否则依次进入扩展已有驱动或基于已验证 SDK 证据的新实现策略。
 
-Planner 只产生策略与验收条件，不对厂商代码进行全局字符串替换。阶段一增加 `driveforge patch`：补丁配置必须声明文件、唯一旧文本和新文本；预览阶段会生成 `.driveforge/driver.patch`，锚点缺失或多次命中时保持源文件不变。外部 `commands.patch` 仍可用于复杂工程修改。
+Planner 只产生策略与验收条件，不对厂商代码进行全局字符串替换。阶段二增加 `driveforge patch`：补丁配置必须声明文件、唯一旧文本和新文本；预览阶段会生成 `.driveforge/driver.patch`，锚点缺失、重复目标或多次命中时保持源文件不变。应用阶段先写入临时文件，再原子替换全部目标；任一目标失败会回滚已替换文件。外部 `commands.patch` 仍可用于复杂工程修改。
 
-## 阶段一确定性引擎
+## 阶段二确定性引擎
 
 - `parse_svd(path)` 将 CMSIS-SVD 转换为 `SVDDevice`，寄存器地址由 `base_address + address_offset` 明确计算，位域提供掩码。
 - `solve_can_bittiming(clock_hz, bitrate)` 遍历整数 Prescaler/BS1/BS2，在 80%~87.5% 采样点窗口内优先选择零误差解。
 - `solve_uart_baudrate` 和 `solve_spi_clock` 分别返回过采样分频和不超过器件上限的最快 SPI 分频。
-- `CSourceAnalyzer` 使用依赖无关的预处理分支模型；后续接入 tree-sitter 只需替换后端，不改变 `CSourceModel` 消费接口。
-- `find_unbounded_waits` 为状态/就绪/收发标志的无界 `while` 提供审查发现，`add_timeout_guard` 生成带预算的退出模板。
+- `CSourceAnalyzer` 使用依赖无关的预处理分支模型，支持十六进制/位运算条件和预定义宏；候选驱动发现会忽略明确关闭的分支，并对未知 `#ifdef` 采用仅用于库存发现的开放模式。
+- `find_unbounded_waits` 会屏蔽注释与字符串，识别跨行、单语句和花括号硬件等待循环；检测到 timeout/deadline/tick/retry/for 预算时不报警，`add_timeout_guard` 生成带预算的退出模板。
+- Manifest 的 `facts_digest` 和 Verification Report 的 `hardware_facts_digest` 都是按排序后的事实 JSON 计算的 SHA-256，便于审计时确认事实没有在计划后被悄悄替换。提供 SVD 时，设备名与已验证 MCU 不匹配会进入事实门禁。
 
 ## 执行与修复
 
@@ -133,7 +134,7 @@ YAML 产物便于人工审查，JSON 产物便于后续工具消费。核心实�
 
 ## 当前边界
 
-- CLI 本身不包含大模型 API；复杂工程判断仍由 Codex Skill 或外部命令完成，阶段一的显式锚点补丁可独立运行。
-- 当前没有内置 J-Link/OpenOCD 参数生成器，探针命令由项目配置提供。
+- CLI 本身不包含大模型 API；复杂工程判断仍由 Codex Skill 或外部命令完成，阶段二的显式锚点补丁可独立运行。
+- 当前没有内置 J-Link/OpenOCD 参数生成器，探针命令由项目配置提供；硬件探针、RTT/串口协议和可执行 Playbook 属于阶段三。
 - 没有真实开发板时，只能验证工作流，不能声称目标驱动 `VERIFIED`。
 - Linux、Zephyr、FreeRTOS、复杂高速外设和非 Cortex-M 平台不属于当前 MVP。
