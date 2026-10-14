@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import difflib
+import os
 from pathlib import Path
 import re
+import tempfile
 from typing import Iterable
 
 
@@ -54,6 +56,7 @@ class AdaptFirstPatcher:
         chunks: list[str] = []
         files: list[str] = []
         errors: list[str] = []
+        seen_paths: set[Path] = set()
         for operation in operations:
             path = (self.project / operation.path).resolve()
             try:
@@ -61,8 +64,15 @@ class AdaptFirstPatcher:
             except ValueError:
                 errors.append(f"patch path escapes project: {operation.path}")
                 continue
+            if path in seen_paths:
+                errors.append(f"duplicate patch target: {operation.path}")
+                continue
+            seen_paths.add(path)
             if not path.is_file():
                 errors.append(f"patch target does not exist: {operation.path}")
+                continue
+            if not operation.replacements:
+                errors.append(f"no replacements configured for {operation.path}")
                 continue
             original = path.read_text(encoding="utf-8", errors="replace")
             for required in operation.required:
@@ -87,11 +97,31 @@ class AdaptFirstPatcher:
         result = self.preview(operation_list)
         if result.errors:
             return result
-        for operation in operation_list:
-            path = (self.project / operation.path).resolve()
-            original = path.read_text(encoding="utf-8", errors="replace")
-            updated, _ = _apply_replacements(original, operation.replacements)
-            path.write_text(updated, encoding="utf-8", newline="")
+        staged: list[tuple[Path, Path, str]] = []
+        originals: dict[Path, str] = {}
+        committed: list[Path] = []
+        try:
+            for operation in operation_list:
+                path = (self.project / operation.path).resolve()
+                original = path.read_text(encoding="utf-8", errors="replace")
+                updated, errors = _apply_replacements(original, operation.replacements)
+                if errors:
+                    raise ValueError("; ".join(errors))
+                originals[path] = original
+                with tempfile.NamedTemporaryFile("w", encoding="utf-8", newline="", dir=path.parent, delete=False) as handle:
+                    handle.write(updated)
+                    staged.append((path, Path(handle.name), updated))
+            for path, temporary, _ in staged:
+                os.replace(temporary, path)
+                committed.append(path)
+        except (OSError, ValueError) as exc:
+            for path in reversed(committed):
+                path.write_text(originals[path], encoding="utf-8", newline="")
+            result.errors.append(f"patch transaction failed: {exc}")
+            return result
+        finally:
+            for _, temporary, _ in staged:
+                temporary.unlink(missing_ok=True)
         if patch_file is not None:
             destination = Path(patch_file)
             if not destination.is_absolute():
